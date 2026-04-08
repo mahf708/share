@@ -20,17 +20,19 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
          background: var(--bg); color: var(--text); min-height: 100vh;
-         display: flex; flex-direction: column; transition: background 0.3s, color 0.3s; }
+         display: flex; flex-direction: column;
+         transition: background 0.3s, color 0.3s; }
   header { background: var(--header-bg); color: #fff; padding: 48px 32px 40px;
-           text-align: center; }
+           position: relative; z-index: 10; text-align: center; }
   header h1 { font-size: 1.8em; font-weight: 700; letter-spacing: -0.02em; }
   header p { margin-top: 8px; opacity: 0.7; font-size: 0.95em; }
-  .theme-toggle { position: absolute; top: 16px; right: 24px;
+  .theme-toggle { position: absolute; top: 16px; right: 24px; z-index: 20;
                   background: none; border: 2px solid rgba(255,255,255,0.3);
                   color: #fff; padding: 6px 14px; border-radius: 20px;
-                  cursor: pointer; font-size: 0.85em; transition: all 0.2s; }
+                  cursor: pointer; font-size: 0.85em; font-weight: 500;
+                  transition: all 0.2s; }
   .theme-toggle:hover { border-color: #fff; background: rgba(255,255,255,0.1); }
-  main { max-width: 640px; margin: -32px auto 0; padding: 0 24px; flex: 1;
+  main { max-width: 640px; margin: -32px auto 0; padding: 0 24px 40px; flex: 1;
          width: 100%; position: relative; z-index: 1; }
   ul { list-style: none; }
   li { margin-bottom: 12px; }
@@ -39,9 +41,12 @@
          color: var(--text); transition: all 0.2s; }
   li a:hover { border-color: var(--accent); box-shadow: 0 4px 16px rgba(0,0,0,0.08);
                transform: translateY(-2px); }
-  li a .title { font-weight: 600; font-size: 1.05em; color: var(--accent); }
-  li a .desc { font-size: 0.85em; color: var(--text-muted); margin-top: 4px; }
-  footer { text-align: center; padding: 24px; font-size: 0.8em; color: var(--text-muted); }
+  li a .title { font-weight: 600; font-size: 1.05em; color: var(--accent);
+                transition: color 0.3s; }
+  li a .desc { font-size: 0.85em; color: var(--text-muted); margin-top: 4px;
+               transition: color 0.3s; }
+  footer { text-align: center; padding: 24px; font-size: 0.8em;
+           color: var(--text-muted); transition: color 0.3s; }
 </style>
 <script>
 (function() {
@@ -55,16 +60,18 @@ function toggleTheme() {
   var n = h.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   h.setAttribute('data-theme', n);
   localStorage.setItem('eam-theme', n);
-  document.querySelector('.theme-toggle').textContent = n === 'dark' ? '\u2600 Light' : '\u263E Dark';
+  updateToggleLabel();
 }
-document.addEventListener('DOMContentLoaded', function() {
+function updateToggleLabel() {
   var t = document.documentElement.getAttribute('data-theme');
-  document.querySelector('.theme-toggle').textContent = t === 'dark' ? '\u2600 Light' : '\u263E Dark';
-});
+  var btn = document.querySelector('.theme-toggle');
+  if (btn) btn.textContent = t === 'dark' ? '\u2600 Light' : '\u263E Dark';
+}
+document.addEventListener('DOMContentLoaded', updateToggleLabel);
 </script>
 </head>
 <body>
-<header style="position:relative">
+<header>
   <button class="theme-toggle" onclick="toggleTheme()"></button>
   <h1>FME Diagnostics</h1>
   <p>Full Model Emulation &mdash; E3SM Online Output Verification</p>
