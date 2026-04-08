@@ -1,359 +1,833 @@
-    <!DOCTYPE html><html><head>
-    <meta charset="utf-8"/>
-    <title>EAM FME Output Verification</title>
-    <style>
-      * { box-sizing: border-box; }
-      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-             margin: 0; padding: 0; background: #f0f2f5; color: #333; }
-      .container { max-width: 1600px; margin: 0 auto; padding: 20px 30px; }
-      header { background: #1a2744; color: #fff; padding: 20px 30px; }
-      header h1 { margin: 0 0 6px 0; font-size: 1.6em; }
-      header .status { font-size: 1.2em; font-weight: bold;
-                        color: #ff8888; }
-      h2 { color: #1a2744; margin-top: 35px; border-bottom: 2px solid #1a2744;
-            padding-bottom: 6px; font-size: 1.3em; }
-      h3 { color: #2c3e50; margin-top: 25px; }
-      h4 { color: #555; margin: 8px 0 4px; font-size: 0.95em; }
-      nav { background: #fff; padding: 12px 16px; border-radius: 6px;
-             box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin: 15px 0;
-             display: flex; flex-wrap: wrap; gap: 8px; position: sticky;
-             top: 0; z-index: 100; }
-      nav a { color: #1a2744; text-decoration: none; padding: 5px 12px;
-               background: #e8eef4; border-radius: 4px; font-size: 0.85em;
-               font-weight: 500; transition: all 0.15s; }
-      nav a:hover { background: #1a2744; color: #fff; }
-      table { border-collapse: collapse; width: 100%; background: #fff;
-               box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-radius: 4px;
-               overflow: hidden; margin-bottom: 16px; }
-      td, th { border: 1px solid #e0e0e0; padding: 8px 14px; text-align: left; }
-      th { background: #1a2744; color: #fff; font-weight: 600; font-size: 0.9em; }
-      .pass { color: #2a7d2a; font-weight: bold; }
-      .fail { color: #c33; font-weight: bold; }
-      .gallery { display: flex; flex-wrap: wrap; gap: 12px; }
-      .fig { display: inline-block; margin: 4px; vertical-align: top; }
-      .fig img { max-width: 520px; width: 100%; border: 1px solid #ccc; border-radius: 4px;
-                  transition: transform 0.2s; cursor: zoom-in; }
-      .fig img:hover { transform: scale(1.02); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
-      .fig span { display: block; font-size: 0.75em; color: #888; margin-top: 2px; }
-      .fig.wide img { max-width: 900px; }
-      details { margin: 10px 0; background: #fff; border-radius: 4px;
-                 box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
-      summary { cursor: pointer; font-weight: 600; color: #1a2744; padding: 10px 14px; }
-      summary:hover { background: #f5f7fa; }
-      .timing-container { background: #fff; padding: 16px; border-radius: 4px;
-                           box-shadow: 0 1px 3px rgba(0,0,0,0.08);
-                           overflow-x: auto; max-height: 500px; overflow-y: auto; }
-      .timing-table td { font-family: 'Courier New', monospace; font-size: 0.85em;
-                          padding: 4px 10px; white-space: nowrap; }
-      footer { margin-top: 40px; padding: 16px 30px; border-top: 2px solid #1a2744;
-                color: #777; font-size: 0.8em; background: #fff; text-align: center; }
-      /* Lightbox overlay */
-      .lightbox { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
-                   background:rgba(0,0,0,0.88); z-index:1000; cursor:zoom-out;
-                   align-items:center; justify-content:center; }
-      .lightbox.active { display:flex; }
-      .lightbox img { max-width:95%; max-height:95%; border-radius:6px;
-                       box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
-      /* Tabs */
-      .tabs { display:flex; flex-wrap:wrap; gap:4px; margin:16px 0 0; }
-      .tab { padding:8px 18px; border:none; background:#e0e4ea; color:#1a2744;
-              cursor:pointer; font-weight:600; font-size:0.9em; border-radius:6px 6px 0 0;
-              transition: all 0.15s; }
-      .tab:hover { background:#c8d0dc; }
-      .tab.active { background:#1a2744; color:#fff; }
-      .badge { background:rgba(255,255,255,0.25); padding:2px 7px; border-radius:10px;
-                font-size:0.8em; margin-left:4px; }
-      .tab-content { background:#fff; padding:18px; border-radius:0 6px 6px 6px;
-                      box-shadow:0 1px 3px rgba(0,0,0,0.08); margin-bottom:16px; }
-      /* Sortable table header */
-      .sortable th { cursor:pointer; user-select:none; position:relative; padding-right:20px; }
-      .sortable th:after { content:''; position:absolute; right:6px; top:50%;
-                            transform:translateY(-50%); opacity:0.3; }
-      .sortable th:hover { background:#2a3d5c; }
-    </style>
-    <script>
-    function showTab(id) {
-      document.querySelectorAll('.tab-content').forEach(function(el) { el.style.display='none'; });
-      document.querySelectorAll('.tab').forEach(function(el) { el.classList.remove('active'); });
-      var tab = document.getElementById('tab_' + id);
-      if (tab) tab.style.display = '';
-      // Find the button for this tab
-      document.querySelectorAll('.tab').forEach(function(btn) {
-        if (btn.textContent.indexOf(id) >= 0 || btn.getAttribute('onclick').indexOf(id) >= 0)
-          btn.classList.add('active');
-      });
-    }
-    function sortTable(th, col) {
-      var table = th.closest('table');
-      var tbody = table.querySelector('tbody');
-      var rows = Array.from(tbody.querySelectorAll('tr'));
-      var asc = th.dataset.sort !== 'asc';
-      th.dataset.sort = asc ? 'asc' : 'desc';
-      rows.sort(function(a, b) {
-        var va = a.cells[col].textContent.trim();
-        var vb = b.cells[col].textContent.trim();
-        var na = parseFloat(va), nb = parseFloat(vb);
-        if (!isNaN(na) && !isNaN(nb)) return asc ? na - nb : nb - na;
-        return asc ? va.localeCompare(vb) : vb.localeCompare(va);
-      });
-      rows.forEach(function(r) { tbody.appendChild(r); });
-    }
-    document.addEventListener('DOMContentLoaded', function() {
-      var lb = document.createElement('div');
-      lb.className = 'lightbox';
-      var lbImg = document.createElement('img');
-      lb.appendChild(lbImg);
-      document.body.appendChild(lb);
-      lb.addEventListener('click', function() { lb.classList.remove('active'); });
-      document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') lb.classList.remove('active');
-      });
-      document.querySelectorAll('.fig a').forEach(function(a) {
-        a.addEventListener('click', function(e) {
-          e.preventDefault();
-          lbImg.src = this.href;
-          lb.classList.add('active');
-        });
-      });
-    });
-    </script>
-    </head><body>
-    <header>
-      <h1>EAM FME Online Output Verification</h1>
-      <span class="status">6 issues in 1/2 components</span>
-    </header>
-    <div class="container">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>EAM FME Output Verification</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0f1a;
+  --surface: #141624;
+  --surface2: #1c1f30;
+  --surface3: #242840;
+  --border: #2a2e47;
+  --text: #e2e5f1;
+  --text-muted: #7880a0;
+  --accent: #6c8fff;
+  --accent-glow: rgba(108,143,255,0.2);
+  --green: #34d399;
+  --green-bg: rgba(52,211,153,0.1);
+  --red: #f87171;
+  --red-bg: rgba(248,113,113,0.1);
+  --yellow: #fbbf24;
+  --yellow-bg: rgba(251,191,36,0.1);
+  --nav-w: 260px;
+  --header-grad: linear-gradient(135deg, #0d1433 0%, #1a0d33 100%);
+  --header-glow: rgba(108,143,255,0.08);
+}
+html.light {
+  --bg: #f4f6fb;
+  --surface: #ffffff;
+  --surface2: #eef1f8;
+  --surface3: #e4e8f4;
+  --border: #d0d6e8;
+  --text: #1a1e30;
+  --text-muted: #6070a0;
+  --accent: #4a6adf;
+  --accent-glow: rgba(74,106,223,0.12);
+  --green: #16a34a;
+  --green-bg: rgba(22,163,74,0.08);
+  --red: #dc2626;
+  --red-bg: rgba(220,38,38,0.08);
+  --yellow: #b45309;
+  --yellow-bg: rgba(180,83,9,0.08);
+  --header-grad: linear-gradient(135deg, #1e3a8a 0%, #3730a3 100%);
+  --header-glow: rgba(255,255,255,0.05);
+}
+* { transition: background-color 0.25s, border-color 0.25s, color 0.15s; }
+* { margin:0; padding:0; box-sizing:border-box; }
+* { transition: background-color 0.25s, border-color 0.25s; }
+a, button, .badge, .tab-btn, .fig-card, .summary-card, .nav-link, .issue-pill { transition: all 0.15s !important; }
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  min-height: 100vh;
+}
 
-    <nav><a href="#Summary">Summary</a>
-<a href="#File_Inventory">File Inventory</a>
-<a href="#Fill_NaN_Report">Fill NaN Report</a>
-<a href="#Cross_Verify">Cross Verify</a>
-<a href="#EAM">EAM</a>
-<a href="#Comparisons">Comparisons</a>
-<a href="#Cross_Verify">Cross-Verify</a>
-<a href="#Timing">Timing</a>
+/* ---- SIDEBAR ---- */
+#sidebar {
+  width: var(--nav-w);
+  min-width: var(--nav-w);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  position: fixed;
+  top:0; bottom:0; left:0;
+  overflow-y: auto;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+}
+.sidebar-brand {
+  padding: 24px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.sidebar-brand-text { flex: 1; min-width: 0; }
+#theme-toggle {
+  flex-shrink: 0;
+  margin-top: 2px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  border-radius: 8px;
+  width: 34px; height: 34px;
+  cursor: pointer;
+  font-size: 17px;
+  display: flex; align-items: center; justify-content: center;
+}
+#theme-toggle:hover { color: var(--text); border-color: var(--accent); background: var(--surface3); }
+.sidebar-brand .tag {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.sidebar-brand h1 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+}
+.sidebar-brand .date {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  font-family: 'JetBrains Mono', monospace;
+}
+.sidebar-status {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.status-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 0;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.status-row span:last-child { font-weight: 600; }
+.status-row .pass-text { color: var(--green); }
+.status-row .fail-text { color: var(--red); }
+.nav-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  padding: 16px 20px 6px;
+}
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 20px;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-decoration: none;
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: all 0.15s;
+}
+.nav-link:hover { color: var(--text); background: var(--surface2); }
+.nav-link.active { color: var(--accent); background: var(--accent-glow); border-left-color: var(--accent); font-weight: 500; }
+.nav-link .dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--border);
+  flex-shrink: 0;
+}
+.nav-link.pass .dot { background: var(--green); }
+.nav-link.fail .dot { background: var(--red); }
+
+/* ---- MAIN ---- */
+#main {
+  margin-left: var(--nav-w);
+  flex: 1;
+  padding: 36px 48px;
+  max-width: 1300px;
+}
+
+/* ---- SECTION HEADERS ---- */
+.section { margin-bottom: 56px; }
+.section-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+.section-subtitle {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+/* ---- SUMMARY CARDS ---- */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+.summary-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px 20px;
+  transition: border-color 0.2s, transform 0.2s;
+}
+.summary-card:hover { transform: translateY(-2px); }
+.summary-card.pass { border-color: rgba(52,211,153,0.3); background: linear-gradient(135deg, var(--surface), rgba(52,211,153,0.05)); }
+.summary-card.fail { border-color: rgba(248,113,113,0.3); background: linear-gradient(135deg, var(--surface), rgba(248,113,113,0.05)); }
+.summary-card .comp-name { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; font-weight: 500; }
+.summary-card .comp-status {
+  font-size: 22px;
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+}
+.summary-card.pass .comp-status { color: var(--green); }
+.summary-card.fail .comp-status { color: var(--red); }
+.summary-card .comp-issues { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+
+/* ---- ISSUE PILLS ---- */
+.issues-container { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.issue-pill {
+  background: var(--red-bg);
+  border: 1px solid rgba(248,113,113,0.25);
+  color: var(--red);
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  transition: background 0.15s;
+}
+.issue-pill:hover { background: rgba(248,113,113,0.2); }
+
+/* ---- TABLES ---- */
+.table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 16px; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+thead tr { background: var(--surface2); }
+th {
+  padding: 11px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+th.sortable { cursor: pointer; user-select: none; }
+th.sortable:hover { color: var(--text); }
+th.sortable::after { content: ' ↕'; opacity: 0.4; font-size: 10px; }
+tbody tr { border-top: 1px solid var(--border); transition: background 0.12s; }
+tbody tr:hover { background: var(--surface2); }
+td { padding: 10px 16px; color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+td.field { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 13px; }
+.badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600;
+  font-family: 'Inter', sans-serif; letter-spacing: 0.3px;
+}
+.badge.pass { background: var(--green-bg); color: var(--green); }
+.badge.fail { background: var(--red-bg); color: var(--red); }
+.badge.info { background: rgba(108,143,255,0.1); color: var(--accent); }
+.badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+/* ---- TABS ---- */
+.tabs { display: flex; gap: 4px; margin-bottom: 0; flex-wrap: wrap; }
+.tab-btn {
+  padding: 9px 18px;
+  border: 1px solid var(--border);
+  border-bottom: none;
+  background: var(--surface);
+  color: var(--text-muted);
+  border-radius: 8px 8px 0 0;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+  transition: all 0.15s;
+  display: flex; align-items: center; gap: 8px;
+}
+.tab-btn:hover { background: var(--surface2); color: var(--text); }
+.tab-btn.active { background: var(--surface2); color: var(--accent); border-color: var(--border); }
+.tab-badge {
+  background: var(--surface3);
+  color: var(--text-muted);
+  padding: 1px 7px; border-radius: 10px;
+  font-size: 11px;
+}
+.tab-btn.active .tab-badge { background: var(--accent-glow); color: var(--accent); }
+.tab-panel {
+  display: none;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 0 8px 8px 8px;
+  padding: 20px;
+  margin-bottom: 16px;
+}
+.tab-panel.active { display: block; }
+
+/* ---- GALLERY ---- */
+.gallery { display: flex; flex-wrap: wrap; gap: 14px; }
+.fig-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: zoom-in;
+  transition: transform 0.18s, border-color 0.18s, box-shadow 0.18s;
+  max-width: 500px;
+}
+.fig-card:hover { transform: translateY(-3px); border-color: var(--accent); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+.fig-card.wide { max-width: 860px; }
+.fig-card img { width: 100%; display: block; background: #fff; }
+.fig-card .fig-label { padding: 8px 12px; font-size: 11px; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+
+/* ---- TIMING ---- */
+.timing-wrap {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: auto;
+  max-height: 420px;
+}
+.timing-wrap table { font-size: 12px; }
+.timing-wrap td { color: var(--text-muted); }
+.timing-wrap td:first-child { color: var(--accent); font-weight: 500; }
+
+/* ---- LIGHTBOX ---- */
+#lightbox {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.92);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  backdrop-filter: blur(4px);
+}
+#lightbox.open { display: flex; animation: fadeIn 0.18s ease; }
+@keyframes fadeIn { from { opacity:0 } to { opacity:1 } }
+#lightbox img {
+  max-width: 94vw; max-height: 88vh;
+  border-radius: 8px;
+  object-fit: contain;
+  background: #fff;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.7);
+}
+#lightbox .lb-caption { color: var(--text-muted); font-size: 12px; margin-top: 12px; font-family: 'JetBrains Mono', monospace; }
+#lightbox .lb-close {
+  position: fixed; top: 20px; right: 24px;
+  background: rgba(255,255,255,0.08); border: none; color: #fff;
+  font-size: 24px; width: 44px; height: 44px; border-radius: 50%;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+#lightbox .lb-close:hover { background: rgba(255,255,255,0.18); }
+#lightbox .lb-nav {
+  position: fixed; top: 50%; transform: translateY(-50%);
+  background: rgba(255,255,255,0.08); border: none; color: #fff;
+  font-size: 26px; width: 50px; height: 50px; border-radius: 50%;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s;
+}
+#lightbox .lb-nav:hover { background: rgba(255,255,255,0.18); }
+#lightbox .lb-prev { left: 20px; }
+#lightbox .lb-next { right: 20px; }
+
+/* ---- DETAILS/SUMMARY ---- */
+details { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 12px; }
+summary {
+  cursor: pointer; padding: 13px 18px;
+  font-weight: 600; font-size: 13px; color: var(--text-muted);
+  list-style: none; display: flex; align-items: center; gap: 8px;
+  transition: color 0.15s;
+}
+summary::-webkit-details-marker { display: none; }
+summary::before { content: '▶'; font-size: 10px; transition: transform 0.2s; }
+details[open] summary::before { transform: rotate(90deg); }
+summary:hover { color: var(--text); }
+details .table-wrap { margin: 0 16px 16px; }
+
+/* ---- SCROLLBAR ---- */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ---- HEADER STRIP ---- */
+.page-header {
+  background: var(--header-grad);
+  border-bottom: 1px solid var(--border);
+  padding: 28px 48px;
+  margin: -36px -48px 40px;
+  position: relative;
+  overflow: hidden;
+}
+.page-header::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 80% 50%, var(--header-glow) 0%, transparent 70%);
+  pointer-events: none;
+}
+.page-header h1 { font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 4px; }
+.page-header .meta { font-size: 13px; color: var(--text-muted); display: flex; gap: 20px; flex-wrap: wrap; }
+.page-header .meta span { display: flex; align-items: center; gap: 6px; }
+.overall-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 16px; border-radius: 20px;
+  font-size: 14px; font-weight: 700;
+  margin-top: 12px;
+}
+.overall-badge.fail { background: var(--red-bg); color: var(--red); border: 1px solid rgba(248,113,113,0.3); }
+.overall-badge.pass { background: var(--green-bg); color: var(--green); border: 1px solid rgba(52,211,153,0.3); }
+.overall-badge::before { content:''; width:8px; height:8px; border-radius:50%; background:currentColor; animation: pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+
+/* ---- FOOTER ---- */
+footer { color: var(--text-muted); font-size: 12px; padding: 32px 0 8px; text-align: center; border-top: 1px solid var(--border); margin-top: 40px; }
+
+/* ---- RESPONSIVE ---- */
+@media (max-width: 900px) {
+  #sidebar { position: relative; width: 100%; min-width: 0; }
+  #main { margin-left: 0; padding: 20px; }
+  body { flex-direction: column; }
+  .page-header { margin: -20px -20px 24px; padding: 20px; }
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav id="sidebar">
+  <div class="sidebar-brand">
+    <div class="sidebar-brand-text">
+      <div class="tag">E3SM · FME</div>
+      <h1>EAM Online Verification</h1>
+      <div class="date">2026-04-07 15:05:37</div>
+    </div>
+    <button id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark mode">🌙</button>
+  </div>
+  <div class="sidebar-status">
+    <div class="status-row"><span>EAM Component</span><span class="pass-text">PASS</span></div>
+    <div class="status-row"><span>Cross-Verify</span><span class="fail-text">6 issues</span></div>
+    <div class="status-row"><span>Files</span><span>EAM h0: 3</span></div>
+  </div>
+  <div class="nav-section-label">Sections</div>
+  <a class="nav-link active" onclick="scrollToSection('summary')"><span class="dot pass"></span>Summary</a>
+  <a class="nav-link" onclick="scrollToSection('inventory')"><span class="dot"></span>File Inventory</a>
+  <a class="nav-link" onclick="scrollToSection('fillnan')"><span class="dot pass"></span>Fill / NaN</a>
+  <a class="nav-link fail" onclick="scrollToSection('crossverify')"><span class="dot fail"></span>Cross-Verify</a>
+  <a class="nav-section-label">Figures</a>
+  <a class="nav-link" onclick="scrollToSection('eam-figs')"><span class="dot pass"></span>EAM Diagnostics</a>
+  <a class="nav-link" onclick="scrollToSection('comp-figs')"><span class="dot pass"></span>Comparisons</a>
+  <a class="nav-link" onclick="scrollToSection('xv-figs')"><span class="dot fail"></span>Cross-Verify Figs</a>
+  <a class="nav-link" onclick="scrollToSection('timing')"><span class="dot"></span>Timing</a>
 </nav>
 
-    <h2 id="Summary">Component Summary</h2>
-    <table>
-    <tr><th>Component</th><th>Status</th><th>Issues</th></tr>
-    <tr><td>EAM</td><td class="pass">PASS</td><td>0</td></tr>
-<tr><td>Cross-Verify</td><td class="fail">FAIL</td><td>6</td></tr>
+<!-- MAIN -->
+<main id="main">
 
-    </table>
+  <!-- HEADER -->
+  <div class="page-header">
+    <h1>EAM FME Online Output Verification</h1>
+    <div class="overall-badge fail">6 issues in 1 of 2 components</div>
+    <div class="meta" style="margin-top:12px;">
+      <span>🧩 E3SM EAM Component</span>
+      <span>🔁 FME vs Legacy Cross-Verify</span>
+      <span>📅 2026-04-07</span>
+    </div>
+  </div>
 
-    <details><summary>Show all 6 issues</summary><table><tr><th>Component</th><th>Issue</th></tr><tr><td>Cross-Verify</td><td>GMEAN ICEFRAC: rel_diff = 0.0966</td></tr>
-<tr><td>Cross-Verify</td><td>GMEAN TAUX: rel_diff = 0.3688</td></tr>
-<tr><td>Cross-Verify</td><td>GMEAN TAUY: rel_diff = 0.02117</td></tr>
-<tr><td>Cross-Verify</td><td>VCOARSEN U: max|rel| = 1.07e+00</td></tr>
-<tr><td>Cross-Verify</td><td>VCOARSEN V: max|rel| = 4.30e+01</td></tr>
-<tr><td>Cross-Verify</td><td>LINEARITY STW: max|rel| = 2.46e-01</td></tr>
-</table></details>
+  <!-- SUMMARY -->
+  <div class="section" id="summary">
+    <div class="section-title">Component Summary</div>
+    <div class="summary-grid">
+      <div class="summary-card pass">
+        <div class="comp-name">EAM</div>
+        <div class="comp-status">PASS</div>
+        <div class="comp-issues">0 issues detected</div>
+      </div>
+      <div class="summary-card fail">
+        <div class="comp-name">Cross-Verify (FME vs Legacy)</div>
+        <div class="comp-status">FAIL</div>
+        <div class="comp-issues">6 issues detected</div>
+      </div>
+    </div>
+    <div class="issues-container">
+      <div class="issue-pill">GMEAN ICEFRAC: rel_diff = 0.0966</div>
+      <div class="issue-pill">GMEAN TAUX: rel_diff = 0.3688</div>
+      <div class="issue-pill">GMEAN TAUY: rel_diff = 0.02117</div>
+      <div class="issue-pill">VCOARSEN U: max|rel| = 1.07e+00</div>
+      <div class="issue-pill">VCOARSEN V: max|rel| = 4.30e+01</div>
+      <div class="issue-pill">LINEARITY STW: max|rel| = 2.46e-01</div>
+    </div>
+  </div>
 
-    <h2 id="File_Inventory">File Inventory</h2>
-    <table>
-    <tr><th>Category</th><th>File Count</th></tr>
-    <tr><td>EAM h0</td><td class="pass">3</td></tr>
+  <!-- FILE INVENTORY -->
+  <div class="section" id="inventory">
+    <div class="section-title">File Inventory</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Category</th><th>File Count</th></tr></thead>
+        <tbody>
+          <tr><td class="field">EAM h0</td><td><span class="badge pass">3</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-    </table>
-
-    <h2 id="Fill_NaN_Report">Fill / NaN Report</h2>
-    <details><summary>Variable-level fill fraction details</summary>
-    <table>
-    <tr><th>Component</th><th>Variable</th><th>Total Cells</th><th>Valid</th><th>Fill/NaN</th><th>Fill %</th></tr>
-    <tr><td>EAM</td><td>h0/PHIS</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/PS</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/TS</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/LHFLX</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/SHFLX</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/FLDS</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/FSDS</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/FSNTOA</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/FLUT</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/SOLIN</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/FSUS</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/FLUS</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/ICEFRAC</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/LANDFRAC</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/OCNFRAC</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/TAUX</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/TAUY</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/PRECT</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/DTENDTTW</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/T_0</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/T_1</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/T_2</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/T_3</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/T_4</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/T_5</td><td>259,200</td><td>258,765</td><td>435</td><td class="pass">0.2%</td></tr>
-<tr><td>EAM</td><td>h0/T_6</td><td>259,200</td><td>242,122</td><td>17,078</td><td class="pass">6.6%</td></tr>
-<tr><td>EAM</td><td>h0/T_7</td><td>259,200</td><td>228,443</td><td>30,757</td><td class="pass">11.9%</td></tr>
-<tr><td>EAM</td><td>h0/U_0</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/U_1</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/U_2</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/U_3</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/U_4</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/U_5</td><td>259,200</td><td>258,765</td><td>435</td><td class="pass">0.2%</td></tr>
-<tr><td>EAM</td><td>h0/U_6</td><td>259,200</td><td>242,122</td><td>17,078</td><td class="pass">6.6%</td></tr>
-<tr><td>EAM</td><td>h0/U_7</td><td>259,200</td><td>228,443</td><td>30,757</td><td class="pass">11.9%</td></tr>
-<tr><td>EAM</td><td>h0/V_0</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/V_1</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/V_2</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/V_3</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/V_4</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/V_5</td><td>259,200</td><td>258,765</td><td>435</td><td class="pass">0.2%</td></tr>
-<tr><td>EAM</td><td>h0/V_6</td><td>259,200</td><td>242,122</td><td>17,078</td><td class="pass">6.6%</td></tr>
-<tr><td>EAM</td><td>h0/V_7</td><td>259,200</td><td>228,443</td><td>30,757</td><td class="pass">11.9%</td></tr>
-<tr><td>EAM</td><td>h0/STW_0</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/STW_1</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/STW_2</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/STW_3</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/STW_4</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
-<tr><td>EAM</td><td>h0/STW_5</td><td>259,200</td><td>258,765</td><td>435</td><td class="pass">0.2%</td></tr>
-<tr><td>EAM</td><td>h0/STW_6</td><td>259,200</td><td>242,122</td><td>17,078</td><td class="pass">6.6%</td></tr>
-<tr><td>EAM</td><td>h0/STW_7</td><td>259,200</td><td>228,443</td><td>30,757</td><td class="pass">11.9%</td></tr>
-
-    </table>
+  <!-- FILL / NAN -->
+  <div class="section" id="fillnan">
+    <div class="section-title">Fill / NaN Report</div>
+    <details>
+      <summary>Variable-level fill fraction details</summary>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Component</th><th>Variable</th><th>Total Cells</th><th>Valid</th><th>Fill/NaN</th><th>Fill %</th></tr></thead>
+          <tbody>
+            <tr><td>EAM</td><td>h0/PHIS</td><td>259,200</td><td>259,200</td><td>0</td><td><span class="badge pass">0.0%</span></td></tr>
+            <tr><td>EAM</td><td>h0/PS</td><td>259,200</td><td>259,200</td><td>0</td><td><span class="badge pass">0.0%</span></td></tr>
+            <tr><td>EAM</td><td>h0/TS</td><td>259,200</td><td>259,200</td><td>0</td><td><span class="badge pass">0.0%</span></td></tr>
+            <tr><td>EAM</td><td>h0/LHFLX</td><td>259,200</td><td>259,200</td><td>0</td><td><span class="badge pass">0.0%</span></td></tr>
+            <tr><td>EAM</td><td>h0/SHFLX</td><td>259,200</td><td>259,200</td><td>0</td><td><span class="badge pass">0.0%</span></td></tr>
+            <tr><td>EAM</td><td>h0/FLDS</td><td>259,200</td><td>259,200</td><td>0</td><td><span class="badge pass">0.0%</span></td></tr>
+            <tr><td>EAM</td><td>h0/FSDS</td><td>259,200</td><td>259,200</td><td>0</td><td><span class="badge pass">0.0%</span></td></tr>
+            <tr><td>EAM</td><td>h0/FSNTOA</td><td>259,200</td><td>259,200</td><td>0</td><td><span class="badge pass">0.0%</span></td></tr>
+            <tr><td>EAM</td><td>h0/FLUT</td><td>259,200</td><td>259,200</td><td>0</td><td><span class="badge pass">0.0%</span></td></tr>
+            <tr><td>EAM</td><td>h0/SOLIN</td><td>259,200</td><td>259,200</td><td>0</td><td><span class="badge pass">0.0%</span></td></tr>
+            <tr><td>EAM</td><td>h0/ICEFRAC</td><td>259,200</td><td>259,200</td><td>0</td><td><span class="badge pass">0.0%</span></td></tr>
+            <tr><td>EAM</td><td>h0/TAUX</td><td>259,200</td><td>259,200</td><td>0</td><td><span class="badge pass">0.0%</span></td></tr>
+            <tr><td>EAM</td><td>h0/TAUY</td><td>259,200</td><td>259,200</td><td>0</td><td><span class="badge pass">0.0%</span></td></tr>
+            <tr><td>EAM</td><td>h0/PRECT</td><td>259,200</td><td>259,200</td><td>0</td><td><span class="badge pass">0.0%</span></td></tr>
+            <tr><td>EAM</td><td>h0/T_5</td><td>259,200</td><td>258,765</td><td>435</td><td><span class="badge pass">0.2%</span></td></tr>
+            <tr><td>EAM</td><td>h0/T_6</td><td>259,200</td><td>242,122</td><td>17,078</td><td><span class="badge pass">6.6%</span></td></tr>
+            <tr><td>EAM</td><td>h0/T_7</td><td>259,200</td><td>228,443</td><td>30,757</td><td><span class="badge pass">11.9%</span></td></tr>
+          </tbody>
+        </table>
+      </div>
     </details>
+  </div>
 
-    <h2 id="Cross_Verify">Cross-Verification: FME vs Legacy</h2>
-<p>Both cases run identical physics from the same ICs. FME diagnostics are output-only and do not modify model state. <strong>15 pass, 6 fail, 1 info</strong></p>
-<div class="tabs">
-<button class="tab active" onclick="showTab('GMEAN')">Global Means <span class="badge">13/16</span></button>
-<button class="tab" onclick="showTab('VCOARSEN')">Vcoarsen <span class="badge">2/4</span></button>
-<button class="tab" onclick="showTab('LINEARITY')">Linearity <span class="badge">0/1</span></button>
-<button class="tab" onclick="showTab('STORAGE')">Storage <span class="badge">0/1</span></button>
-<button class="tab" onclick="showTab('PLOTS')">Figures</button>
-</div>
-<div class="tab-content" id="tab_GMEAN">
-<h3>Area-Weighted Global-Mean Comparison (cos-lat weighted, &lt;2% tolerance) <span class="fail">(13/16)</span></h3>
-<table class="sortable"><thead><tr><th onclick="sortTable(this,0)">Field</th><th onclick="sortTable(this,1)">Status</th><th onclick="sortTable(this,2)">Detail</th></tr></thead><tbody>
-<tr><td>PS</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=98541.6, leg=98604.1, rel=6.34e-04</td></tr>
-<tr><td>TS</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=286.602, leg=286.709, rel=3.72e-04</td></tr>
-<tr><td>PHIS</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=2269.56, leg=2233.85, rel=1.60e-02</td></tr>
-<tr><td>LANDFRAC</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=0.293414, leg=0.292714, rel=2.39e-03</td></tr>
-<tr><td>OCNFRAC</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=0.649502, leg=0.655231, rel=8.74e-03</td></tr>
-<tr><td>ICEFRAC</td><td class="fail">DIFF</td><td style="font-family:monospace;font-size:0.85em">fme=0.0570834, leg=0.0520547, rel=9.66e-02</td></tr>
-<tr><td>SOLIN</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=351.805, leg=351.571, rel=6.68e-04</td></tr>
-<tr><td>FSNTOA</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=247.151, leg=247.548, rel=1.60e-03</td></tr>
-<tr><td>FLUT</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=239.607, leg=239.475, rel=5.52e-04</td></tr>
-<tr><td>FLDS</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=337.224, leg=337.361, rel=4.04e-04</td></tr>
-<tr><td>FSDS</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=197.289, leg=196.227, rel=5.42e-03</td></tr>
-<tr><td>LHFLX</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=80.3645, leg=80.2349, rel=1.62e-03</td></tr>
-<tr><td>SHFLX</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=17.4429, leg=17.7042, rel=1.48e-02</td></tr>
-<tr><td>TAUX</td><td class="fail">DIFF</td><td style="font-family:monospace;font-size:0.85em">fme=-0.00474899, leg=-0.00752412, rel=3.69e-01</td></tr>
-<tr><td>TAUY</td><td class="fail">DIFF</td><td style="font-family:monospace;font-size:0.85em">fme=0.00833106, leg=0.00851127, rel=2.12e-02</td></tr>
-<tr><td>PRECT</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=3.17905e-08, leg=3.21221e-08, rel=1.03e-02</td></tr>
-</tbody></table>
-</div>
-<div class="tab-content" id="tab_VCOARSEN" style="display:none">
-<h3>Online vs Offline Vcoarsen (area-weighted global mean comparison) <span class="fail">(2/4)</span></h3>
-<table class="sortable"><thead><tr><th onclick="sortTable(this,0)">Field</th><th onclick="sortTable(this,1)">Status</th><th onclick="sortTable(this,2)">Detail</th></tr></thead><tbody>
-<tr><td>T</td><td class="pass">CLOSE</td><td style="font-family:monospace;font-size:0.85em">max|diff|=1.38e-01, max|rel|=6.72e-04</td></tr>
-<tr><td>U</td><td class="fail">DIFF</td><td style="font-family:monospace;font-size:0.85em">max|diff|=6.04e-01, max|rel|=1.07e+00</td></tr>
-<tr><td>V</td><td class="fail">DIFF</td><td style="font-family:monospace;font-size:0.85em">max|diff|=2.20e-02, max|rel|=4.30e+01</td></tr>
-<tr><td>STW</td><td class="pass">CLOSE</td><td style="font-family:monospace;font-size:0.85em">max|diff|=2.65e-05, max|rel|=7.34e-03</td></tr>
-</tbody></table>
-</div>
-<div class="tab-content" id="tab_LINEARITY" style="display:none">
-<h3>Vcoarsen Linearity (STW_k = sum of component_k) <span class="fail">(0/1)</span></h3>
-<table class="sortable"><thead><tr><th onclick="sortTable(this,0)">Field</th><th onclick="sortTable(this,1)">Status</th><th onclick="sortTable(this,2)">Detail</th></tr></thead><tbody>
-<tr><td>STW_k</td><td class="fail">FAIL</td><td style="font-family:monospace;font-size:0.85em">STW_k vs sum(Q_k+CLDICE_k+CLDLIQ_k+RAINQM_k): max|rel|=2.46e-01</td></tr>
-</tbody></table>
-</div>
-<div class="tab-content" id="tab_STORAGE" style="display:none">
-<h3>Storage Comparison <span class="fail">(0/1)</span></h3>
-<table class="sortable"><thead><tr><th onclick="sortTable(this,0)">Field</th><th onclick="sortTable(this,1)">Status</th><th onclick="sortTable(this,2)">Detail</th></tr></thead><tbody>
-<tr><td>total NC files</td><td class="">INFO</td><td style="font-family:monospace;font-size:0.85em">FME: 23 files / 2.16 GB, Legacy: 7 files / 1.57 GB, ratio: 1.38x</td></tr>
-</tbody></table>
-</div>
-<div class="tab-content" id="tab_PLOTS" style="display:none">
-<h3>Native vs Remapped Comparison Figures</h3>
-<p>Left: native ne30pg2 (tripcolor). Right: remapped Gaussian lat-lon (pcolormesh).</p>
-<div class="gallery">
-<div class="fig wide"><a href="fme_output/cross_verify/xv_native_vs_remap_TS.png"><img src="fme_output/cross_verify/xv_native_vs_remap_TS.png"/></a><span>xv_native_vs_remap_TS.png</span></div>
-<div class="fig wide"><a href="fme_output/cross_verify/xv_native_vs_remap_PS.png"><img src="fme_output/cross_verify/xv_native_vs_remap_PS.png"/></a><span>xv_native_vs_remap_PS.png</span></div>
-<div class="fig wide"><a href="fme_output/cross_verify/xv_native_vs_remap_LHFLX.png"><img src="fme_output/cross_verify/xv_native_vs_remap_LHFLX.png"/></a><span>xv_native_vs_remap_LHFLX.png</span></div>
-<div class="fig wide"><a href="fme_output/cross_verify/xv_native_vs_remap_PRECT.png"><img src="fme_output/cross_verify/xv_native_vs_remap_PRECT.png"/></a><span>xv_native_vs_remap_PRECT.png</span></div>
-<div class="fig wide"><a href="fme_output/cross_verify/xv_native_vs_remap_ICEFRAC.png"><img src="fme_output/cross_verify/xv_native_vs_remap_ICEFRAC.png"/></a><span>xv_native_vs_remap_ICEFRAC.png</span></div>
-<div class="fig wide"><a href="fme_output/cross_verify/xv_native_vs_remap_FLUT.png"><img src="fme_output/cross_verify/xv_native_vs_remap_FLUT.png"/></a><span>xv_native_vs_remap_FLUT.png</span></div>
-<div class="fig wide"><a href="fme_output/cross_verify/xv_native_vs_remap_SOLIN.png"><img src="fme_output/cross_verify/xv_native_vs_remap_SOLIN.png"/></a><span>xv_native_vs_remap_SOLIN.png</span></div>
-<div class="fig wide"><a href="fme_output/cross_verify/xv_fme_T_7_remap.png"><img src="fme_output/cross_verify/xv_fme_T_7_remap.png"/></a><span>xv_fme_T_7_remap.png</span></div>
-<div class="fig wide"><a href="fme_output/cross_verify/xv_fme_STW_7_remap.png"><img src="fme_output/cross_verify/xv_fme_STW_7_remap.png"/></a><span>xv_fme_STW_7_remap.png</span></div>
-</div>
-</div>
+  <!-- CROSS-VERIFY -->
+  <div class="section" id="crossverify">
+    <div class="section-title">Cross-Verification: FME vs Legacy</div>
+    <p class="section-subtitle">Both cases run identical physics from the same ICs. FME diagnostics are output-only and do not modify model state. &nbsp;<strong>15 pass, 6 fail, 1 info</strong></p>
 
-
-    <h2>Diagnostic Figures</h2>
-    <h3 id="EAM">EAM</h3>
-<div class="gallery">
-<div class="fig"><a href="fme_output/eam/eam_h0_TS.png"><img src="fme_output/eam/eam_h0_TS.png"/></a><span>eam_h0_TS.png</span></div>
-<div class="fig"><a href="fme_output/eam/eam_h0_LHFLX.png"><img src="fme_output/eam/eam_h0_LHFLX.png"/></a><span>eam_h0_LHFLX.png</span></div>
-<div class="fig"><a href="fme_output/eam/eam_h0_PRECT.png"><img src="fme_output/eam/eam_h0_PRECT.png"/></a><span>eam_h0_PRECT.png</span></div>
-<div class="fig"><a href="fme_output/eam/eam_h0_ICEFRAC.png"><img src="fme_output/eam/eam_h0_ICEFRAC.png"/></a><span>eam_h0_ICEFRAC.png</span></div>
-<div class="fig"><a href="fme_output/eam/eam_h0_FLUT.png"><img src="fme_output/eam/eam_h0_FLUT.png"/></a><span>eam_h0_FLUT.png</span></div>
-<div class="fig"><a href="fme_output/eam/eam_h0_FSDS.png"><img src="fme_output/eam/eam_h0_FSDS.png"/></a><span>eam_h0_FSDS.png</span></div>
-<div class="fig"><a href="fme_output/eam/eam_h0_T_0.png"><img src="fme_output/eam/eam_h0_T_0.png"/></a><span>eam_h0_T_0.png</span></div>
-<div class="fig"><a href="fme_output/eam/eam_h0_T_7.png"><img src="fme_output/eam/eam_h0_T_7.png"/></a><span>eam_h0_T_7.png</span></div>
-</div>
-<h3 id="Comparisons">Comparisons</h3>
-<div class="gallery">
-<div class="fig wide"><a href="fme_output/comparisons/eam_h0_T_all_layers.png"><img src="fme_output/comparisons/eam_h0_T_all_layers.png"/></a><span>eam_h0_T_all_layers.png</span></div>
-<div class="fig wide"><a href="fme_output/comparisons/eam_h0_STW_all_layers.png"><img src="fme_output/comparisons/eam_h0_STW_all_layers.png"/></a><span>eam_h0_STW_all_layers.png</span></div>
-<div class="fig wide"><a href="fme_output/comparisons/eam_h0_T_zonal_mean.png"><img src="fme_output/comparisons/eam_h0_T_zonal_mean.png"/></a><span>eam_h0_T_zonal_mean.png</span></div>
-</div>
-<h3 id="Cross_Verify">Cross-Verify</h3>
-<div class="gallery">
-<div class="fig"><a href="fme_output/cross_verify/xv_native_vs_remap_TS.png"><img src="fme_output/cross_verify/xv_native_vs_remap_TS.png"/></a><span>xv_native_vs_remap_TS.png</span></div>
-<div class="fig"><a href="fme_output/cross_verify/xv_native_vs_remap_PS.png"><img src="fme_output/cross_verify/xv_native_vs_remap_PS.png"/></a><span>xv_native_vs_remap_PS.png</span></div>
-<div class="fig"><a href="fme_output/cross_verify/xv_native_vs_remap_LHFLX.png"><img src="fme_output/cross_verify/xv_native_vs_remap_LHFLX.png"/></a><span>xv_native_vs_remap_LHFLX.png</span></div>
-<div class="fig"><a href="fme_output/cross_verify/xv_native_vs_remap_PRECT.png"><img src="fme_output/cross_verify/xv_native_vs_remap_PRECT.png"/></a><span>xv_native_vs_remap_PRECT.png</span></div>
-<div class="fig"><a href="fme_output/cross_verify/xv_native_vs_remap_ICEFRAC.png"><img src="fme_output/cross_verify/xv_native_vs_remap_ICEFRAC.png"/></a><span>xv_native_vs_remap_ICEFRAC.png</span></div>
-<div class="fig"><a href="fme_output/cross_verify/xv_native_vs_remap_FLUT.png"><img src="fme_output/cross_verify/xv_native_vs_remap_FLUT.png"/></a><span>xv_native_vs_remap_FLUT.png</span></div>
-<div class="fig"><a href="fme_output/cross_verify/xv_native_vs_remap_SOLIN.png"><img src="fme_output/cross_verify/xv_native_vs_remap_SOLIN.png"/></a><span>xv_native_vs_remap_SOLIN.png</span></div>
-<div class="fig"><a href="fme_output/cross_verify/xv_fme_T_7_remap.png"><img src="fme_output/cross_verify/xv_fme_T_7_remap.png"/></a><span>xv_fme_T_7_remap.png</span></div>
-<div class="fig"><a href="fme_output/cross_verify/xv_fme_STW_7_remap.png"><img src="fme_output/cross_verify/xv_fme_STW_7_remap.png"/></a><span>xv_fme_STW_7_remap.png</span></div>
-</div>
-
-
-
-    <h2 id="Timing">Performance Timing</h2>
-    <div class="timing-container">
-    <table class="timing-table">
-    <tr><td>*****</td><td>GLOBAL</td><td>STATISTICS</td><td>(</td><td>512</td><td>MPI</td><td>TASKS)</td><td>*****</td></tr>
-<tr><td>name</td><td>on</td><td>processes</td><td>threads</td><td>count</td><td>walltotal</td><td>wallmax</td><td>(proc</td><td>thrd</td><td>)</td><td>wallmin</td><td>(proc</td><td>thrd</td><td>)</td></tr>
-<tr><td>"CPL:INIT"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>5.381409e+04</td><td>105.179</td><td>(</td><td>179</td><td>0)</td><td>105.053</td><td>(</td><td>506</td><td>0)</td></tr>
-<tr><td>"CPL:cime_pre_init1"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.305282e+03</td><td>2.623</td><td>(</td><td>179</td><td>0)</td><td>2.497</td><td>(</td><td>425</td><td>0)</td></tr>
-<tr><td>"CPL:mpi_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>9.889760e+02</td><td>2.006</td><td>(</td><td>179</td><td>0)</td><td>1.879</td><td>(</td><td>444</td><td>0)</td></tr>
-<tr><td>"CPL:ESMF_Initialize"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>5.830304e-01</td><td>0.003</td><td>(</td><td>127</td><td>0)</td><td>0.000</td><td>(</td><td>219</td><td>0)</td></tr>
-<tr><td>"CPL:cime_pre_init2"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.116645e+02</td><td>0.221</td><td>(</td><td>431</td><td>0)</td><td>0.215</td><td>(</td><td>305</td><td>0)</td></tr>
-<tr><td>"CPL:seq_infodata_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.743864e+01</td><td>0.071</td><td>(</td><td>49</td><td>0)</td><td>0.008</td><td>(</td><td>399</td><td>0)</td></tr>
-<tr><td>"CPL:seq_timemgr_clockInit"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>3.167207e+00</td><td>0.009</td><td>(</td><td>205</td><td>0)</td><td>0.002</td><td>(</td><td>387</td><td>0)</td></tr>
-<tr><td>"CPL:cime_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>5.239651e+04</td><td>102.339</td><td>(</td><td>305</td><td>0)</td><td>102.336</td><td>(</td><td>207</td><td>0)</td></tr>
-<tr><td>"CPL:init_comps"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>4.533330e+04</td><td>88.546</td><td>(</td><td>109</td><td>0)</td><td>88.528</td><td>(</td><td>511</td><td>0)</td></tr>
-<tr><td>"CPL:comp_init_pre_all"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.578020e-01</td><td>0.001</td><td>(</td><td>436</td><td>0)</td><td>0.000</td><td>(</td><td>186</td><td>0)</td></tr>
-<tr><td>"comp_init_cc_iac"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>2.259531e+00</td><td>0.006</td><td>(</td><td>132</td><td>0)</td><td>0.003</td><td>(</td><td>196</td><td>0)</td></tr>
-<tr><td>"z_i:comp_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>6.494398e-01</td><td>0.002</td><td>(</td><td>218</td><td>0)</td><td>0.000</td><td>(</td><td>394</td><td>0)</td></tr>
-<tr><td>"CPL:comp_init_cc_atm"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>2.610884e+04</td><td>50.994</td><td>(</td><td>109</td><td>0)</td><td>50.994</td><td>(</td><td>258</td><td>0)</td></tr>
-<tr><td>"a_i:comp_init"</td><td>-</td><td>512</td><td>512</td><td>1.024000e+03</td><td>2.824928e+04</td><td>55.222</td><td>(</td><td>196</td><td>0)</td><td>55.061</td><td>(</td><td>9</td><td>0)</td></tr>
-<tr><td>"a_i:cam_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>2.600281e+04</td><td>50.788</td><td>(</td><td>130</td><td>0)</td><td>50.786</td><td>(</td><td>299</td><td>0)</td></tr>
-<tr><td>"a_i:cam_initfiles_open"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>5.598269e+01</td><td>0.111</td><td>(</td><td>130</td><td>0)</td><td>0.108</td><td>(</td><td>351</td><td>0)</td></tr>
-<tr><td>"a_i:cam_initial"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>3.722247e+03</td><td>7.270</td><td>(</td><td>0</td><td>0)</td><td>7.270</td><td>(</td><td>467</td><td>0)</td></tr>
-<tr><td>"a_i:dyn_init1"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>6.429219e+01</td><td>0.129</td><td>(</td><td>471</td><td>0)</td><td>0.118</td><td>(</td><td>205</td><td>0)</td></tr>
-<tr><td>"a_i:hycoef_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.595461e+01</td><td>0.034</td><td>(</td><td>298</td><td>0)</td><td>0.027</td><td>(</td><td>163</td><td>0)</td></tr>
-<tr><td>"a_i:prim_init1"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>3.960103e+01</td><td>0.083</td><td>(</td><td>449</td><td>0)</td><td>0.071</td><td>(</td><td>355</td><td>0)</td></tr>
-<tr><td>"a_i:repro_sum_finalsum"</td><td>-</td><td>512</td><td>512</td><td>4.505600e+04</td><td>1.572579e-02</td><td>0.000</td><td>(</td><td>204</td><td>0)</td><td>0.000</td><td>(</td><td>404</td><td>0)</td></tr>
-<tr><td>"a_i:compose_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>9.208634e+00</td><td>0.021</td><td>(</td><td>427</td><td>0)</td><td>0.014</td><td>(</td><td>391</td><td>0)</td></tr>
-<tr><td>"a_i:sl_init1"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>2.460434e+00</td><td>0.009</td><td>(</td><td>99</td><td>0)</td><td>0.001</td><td>(</td><td>104</td><td>0)</td></tr>
-<tr><td>"a_i:phys_grid_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.309842e+01</td><td>0.033</td><td>(</td><td>355</td><td>0)</td><td>0.021</td><td>(</td><td>433</td><td>0)</td></tr>
-<tr><td>"a_i:initial_conds"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>3.608035e+03</td><td>7.062</td><td>(</td><td>95</td><td>0)</td><td>7.029</td><td>(</td><td>423</td><td>0)</td></tr>
-<tr><td>"a_i:PIO:initdecomp"</td><td>-</td><td>512</td><td>512</td><td>3.072000e+03</td><td>2.375918e+01</td><td>0.048</td><td>(</td><td>256</td><td>0)</td><td>0.045</td><td>(</td><td>264</td><td>0)</td></tr>
-<tr><td>"a_i:PIO:PIOc_initdecomp"</td><td>-</td><td>512</td><td>512</td><td>3.072000e+03</td><td>2.370284e+01</td><td>0.048</td><td>(</td><td>309</td><td>0)</td><td>0.045</td><td>(</td><td>264</td><td>0)</td></tr>
-<tr><td>"a_i:dyn_init2"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>3.054136e+01</td><td>0.073</td><td>(</td><td>423</td><td>0)</td><td>0.052</td><td>(</td><td>237</td><td>0)</td></tr>
-
-    </table>
+    <div class="tabs">
+      <button class="tab-btn active" onclick="showTab('gmean', this)">Global Means <span class="tab-badge">13/16</span></button>
+      <button class="tab-btn" onclick="showTab('vcoarsen', this)">Vcoarsen <span class="tab-badge">2/4</span></button>
+      <button class="tab-btn" onclick="showTab('linearity', this)">Linearity <span class="tab-badge">0/1</span></button>
+      <button class="tab-btn" onclick="showTab('storage', this)">Storage <span class="tab-badge">INFO</span></button>
+      <button class="tab-btn" onclick="showTab('plots', this)">Figures</button>
     </div>
 
+    <div id="tab-gmean" class="tab-panel active">
+      <h3 style="font-size:14px;color:var(--text-muted);margin-bottom:14px;">Area-Weighted Global-Mean Comparison (cos-lat weighted, &lt;2% tolerance)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th class="sortable" onclick="sortTable(this,0)">Field</th><th class="sortable" onclick="sortTable(this,1)">Status</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td class="field">PS</td><td><span class="badge pass">PASS</span></td><td>fme=98541.6, leg=98604.1, rel=6.34e-04</td></tr>
+            <tr><td class="field">TS</td><td><span class="badge pass">PASS</span></td><td>fme=286.602, leg=286.709, rel=3.72e-04</td></tr>
+            <tr><td class="field">PHIS</td><td><span class="badge pass">PASS</span></td><td>fme=2269.56, leg=2233.85, rel=1.60e-02</td></tr>
+            <tr><td class="field">LANDFRAC</td><td><span class="badge pass">PASS</span></td><td>fme=0.293414, leg=0.292714, rel=2.39e-03</td></tr>
+            <tr><td class="field">OCNFRAC</td><td><span class="badge pass">PASS</span></td><td>fme=0.649502, leg=0.655231, rel=8.74e-03</td></tr>
+            <tr><td class="field">ICEFRAC</td><td><span class="badge fail">DIFF</span></td><td>fme=0.0570834, leg=0.0520547, rel=9.66e-02</td></tr>
+            <tr><td class="field">SOLIN</td><td><span class="badge pass">PASS</span></td><td>fme=351.805, leg=351.571, rel=6.68e-04</td></tr>
+            <tr><td class="field">FSNTOA</td><td><span class="badge pass">PASS</span></td><td>fme=247.151, leg=247.548, rel=1.60e-03</td></tr>
+            <tr><td class="field">FLUT</td><td><span class="badge pass">PASS</span></td><td>fme=239.607, leg=239.475, rel=5.52e-04</td></tr>
+            <tr><td class="field">FLDS</td><td><span class="badge pass">PASS</span></td><td>fme=337.224, leg=337.361, rel=4.04e-04</td></tr>
+            <tr><td class="field">FSDS</td><td><span class="badge pass">PASS</span></td><td>fme=197.289, leg=196.227, rel=5.42e-03</td></tr>
+            <tr><td class="field">LHFLX</td><td><span class="badge pass">PASS</span></td><td>fme=80.3645, leg=80.2349, rel=1.62e-03</td></tr>
+            <tr><td class="field">SHFLX</td><td><span class="badge pass">PASS</span></td><td>fme=17.4429, leg=17.7042, rel=1.48e-02</td></tr>
+            <tr><td class="field">TAUX</td><td><span class="badge fail">DIFF</span></td><td>fme=-0.00474899, leg=-0.00752412, rel=3.69e-01</td></tr>
+            <tr><td class="field">TAUY</td><td><span class="badge fail">DIFF</span></td><td>fme=0.00833106, leg=0.00851127, rel=2.12e-02</td></tr>
+            <tr><td class="field">PRECT</td><td><span class="badge pass">PASS</span></td><td>fme=3.17905e-08, leg=3.21221e-08, rel=1.03e-02</td></tr>
+          </tbody>
+        </table>
+      </div>
     </div>
-    <footer>Generated by verify_eam.py &mdash; EAM FME Online Output Verification for E3SM &mdash; 2026-04-07 15:05:37</footer>
-    </body></html>
+
+    <div id="tab-vcoarsen" class="tab-panel">
+      <h3 style="font-size:14px;color:var(--text-muted);margin-bottom:14px;">Online vs Offline Vcoarsen (area-weighted global mean comparison)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th class="sortable" onclick="sortTable(this,0)">Field</th><th class="sortable" onclick="sortTable(this,1)">Status</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td class="field">T</td><td><span class="badge pass">CLOSE</span></td><td>max|diff|=1.38e-01, max|rel|=6.72e-04</td></tr>
+            <tr><td class="field">U</td><td><span class="badge fail">DIFF</span></td><td>max|diff|=6.04e-01, max|rel|=1.07e+00</td></tr>
+            <tr><td class="field">V</td><td><span class="badge fail">DIFF</span></td><td>max|diff|=2.20e-02, max|rel|=4.30e+01</td></tr>
+            <tr><td class="field">STW</td><td><span class="badge pass">CLOSE</span></td><td>max|diff|=2.65e-05, max|rel|=7.34e-03</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-linearity" class="tab-panel">
+      <h3 style="font-size:14px;color:var(--text-muted);margin-bottom:14px;">Vcoarsen Linearity (STW_k = sum of component_k)</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Status</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td class="field">STW_k</td><td><span class="badge fail">FAIL</span></td><td>STW_k vs sum(Q_k+CLDICE_k+CLDLIQ_k+RAINQM_k): max|rel|=2.46e-01</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-storage" class="tab-panel">
+      <h3 style="font-size:14px;color:var(--text-muted);margin-bottom:14px;">Storage Comparison</h3>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Field</th><th>Status</th><th>Detail</th></tr></thead>
+          <tbody>
+            <tr><td class="field">total NC files</td><td><span class="badge info">INFO</span></td><td>FME: 23 files / 2.16 GB, Legacy: 7 files / 1.57 GB, ratio: 1.38x</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div id="tab-plots" class="tab-panel">
+      <h3 style="font-size:14px;color:var(--text-muted);margin-bottom:14px;">Native vs Remapped Comparison Figures</h3>
+      <p style="font-size:12px;color:var(--text-muted);margin-bottom:16px;">Left: native ne30pg2 (tripcolor). Right: remapped Gaussian lat-lon (pcolormesh).</p>
+      <div class="gallery" id="gallery-xv-inline"></div>
+    </div>
+  </div>
+
+  <!-- EAM DIAGNOSTIC FIGURES -->
+  <div class="section" id="eam-figs">
+    <div class="section-title">EAM Diagnostic Figures</div>
+    <div class="gallery" id="gallery-eam"></div>
+  </div>
+
+  <!-- COMPARISON FIGURES -->
+  <div class="section" id="comp-figs">
+    <div class="section-title">Comparison Figures</div>
+    <div class="gallery" id="gallery-comp"></div>
+  </div>
+
+  <!-- CROSS-VERIFY FIGURES -->
+  <div class="section" id="xv-figs">
+    <div class="section-title">Cross-Verify Figures</div>
+    <div class="gallery" id="gallery-xv"></div>
+  </div>
+
+  <!-- TIMING -->
+  <div class="section" id="timing">
+    <div class="section-title">Performance Timing</div>
+    <div class="timing-wrap">
+      <table>
+        <thead><tr><th>Timer</th><th>Processes</th><th>Count</th><th>Wall Total</th><th>Wall Max</th><th>Wall Min</th></tr></thead>
+        <tbody>
+          <tr><td>"CPL:INIT"</td><td>512</td><td>5.12e+02</td><td>5.38e+04</td><td>105.179</td><td>105.053</td></tr>
+          <tr><td>"CPL:cime_pre_init1"</td><td>512</td><td>5.12e+02</td><td>1.31e+03</td><td>2.623</td><td>2.497</td></tr>
+          <tr><td>"CPL:mpi_init"</td><td>512</td><td>5.12e+02</td><td>9.89e+02</td><td>2.006</td><td>1.879</td></tr>
+          <tr><td>"CPL:ESMF_Initialize"</td><td>512</td><td>5.12e+02</td><td>5.83e-01</td><td>0.003</td><td>0.000</td></tr>
+          <tr><td>"CPL:cime_pre_init2"</td><td>512</td><td>5.12e+02</td><td>1.12e+02</td><td>0.221</td><td>0.215</td></tr>
+          <tr><td>"CPL:seq_infodata_init"</td><td>512</td><td>5.12e+02</td><td>1.74e+01</td><td>0.071</td><td>0.008</td></tr>
+          <tr><td>"CPL:seq_timemgr_clockInit"</td><td>512</td><td>5.12e+02</td><td>3.17e+00</td><td>0.009</td><td>0.002</td></tr>
+          <tr><td>"CPL:cime_init"</td><td>512</td><td>5.12e+02</td><td>5.24e+04</td><td>102.339</td><td>102.336</td></tr>
+          <tr><td>"CPL:init_comps"</td><td>512</td><td>5.12e+02</td><td>4.53e+04</td><td>88.546</td><td>88.528</td></tr>
+          <tr><td>"CPL:comp_init_pre_all"</td><td>512</td><td>5.12e+02</td><td>1.58e-01</td><td>0.001</td><td>0.000</td></tr>
+          <tr><td>"comp_init_cc_iac"</td><td>512</td><td>5.12e+02</td><td>2.26e+00</td><td>0.006</td><td>0.003</td></tr>
+          <tr><td>"z_i:comp_init"</td><td>512</td><td>5.12e+02</td><td>6.49e-01</td><td>0.002</td><td>0.000</td></tr>
+          <tr><td>"CPL:comp_init_cc_atm"</td><td>512</td><td>5.12e+02</td><td>2.61e+04</td><td>50.994</td><td>50.994</td></tr>
+          <tr><td>"a_i:comp_init"</td><td>512</td><td>1.02e+03</td><td>2.82e+04</td><td>55.222</td><td>55.061</td></tr>
+          <tr><td>"a_i:cam_init"</td><td>512</td><td>5.12e+02</td><td>2.60e+04</td><td>50.788</td><td>50.786</td></tr>
+          <tr><td>"a_i:cam_initfiles_open"</td><td>512</td><td>5.12e+02</td><td>5.60e+01</td><td>0.111</td><td>0.108</td></tr>
+          <tr><td>"a_i:cam_initial"</td><td>512</td><td>5.12e+02</td><td>3.72e+03</td><td>7.270</td><td>7.270</td></tr>
+          <tr><td>"a_i:dyn_init1"</td><td>512</td><td>5.12e+02</td><td>6.43e+01</td><td>0.129</td><td>0.118</td></tr>
+          <tr><td>"a_i:hycoef_init"</td><td>512</td><td>5.12e+02</td><td>1.60e+01</td><td>0.034</td><td>0.027</td></tr>
+          <tr><td>"a_i:prim_init1"</td><td>512</td><td>5.12e+02</td><td>3.96e+01</td><td>0.083</td><td>0.071</td></tr>
+          <tr><td>"a_i:repro_sum_finalsum"</td><td>512</td><td>4.51e+04</td><td>1.57e-02</td><td>0.000</td><td>0.000</td></tr>
+          <tr><td>"a_i:compose_init"</td><td>512</td><td>5.12e+02</td><td>9.21e+00</td><td>0.021</td><td>0.014</td></tr>
+          <tr><td>"a_i:sl_init1"</td><td>512</td><td>5.12e+02</td><td>2.46e+00</td><td>0.009</td><td>0.001</td></tr>
+          <tr><td>"a_i:phys_grid_init"</td><td>512</td><td>5.12e+02</td><td>1.31e+01</td><td>0.033</td><td>0.021</td></tr>
+          <tr><td>"a_i:initial_conds"</td><td>512</td><td>5.12e+02</td><td>3.61e+03</td><td>7.062</td><td>7.029</td></tr>
+          <tr><td>"a_i:PIO:initdecomp"</td><td>512</td><td>3.07e+03</td><td>2.38e+01</td><td>0.048</td><td>0.045</td></tr>
+          <tr><td>"a_i:dyn_init2"</td><td>512</td><td>5.12e+02</td><td>3.05e+01</td><td>0.073</td><td>0.052</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <footer>Generated by verify_eam.py &mdash; EAM FME Online Output Verification for E3SM &mdash; 2026-04-07 15:05:37</footer>
+</main>
+
+<!-- LIGHTBOX -->
+<div id="lightbox">
+  <button class="lb-close" onclick="closeLB()">✕</button>
+  <button class="lb-nav lb-prev" onclick="navLB(-1)">‹</button>
+  <button class="lb-nav lb-next" onclick="navLB(1)">›</button>
+  <img id="lb-img" src="" alt="">
+  <div class="lb-caption" id="lb-cap"></div>
+</div>
+
+<script>
+// ---- Theme toggle ----
+function toggleTheme() {
+  const isLight = document.documentElement.classList.toggle('light');
+  document.getElementById('theme-toggle').textContent = isLight ? '☀️' : '🌙';
+  localStorage.setItem('eam-theme', isLight ? 'light' : 'dark');
+}
+(function() {
+  if (localStorage.getItem('eam-theme') === 'light') {
+    document.documentElement.classList.add('light');
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('theme-toggle').textContent = '☀️';
+    });
+  }
+})();
+
+// ---- Navigation scroll ----
+function scrollToSection(id) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+}
+
+// ---- Scroll spy ----
+const sections = ['summary','inventory','fillnan','crossverify','eam-figs','comp-figs','xv-figs','timing'];
+window.addEventListener('scroll', () => {
+  let cur = sections[0];
+  sections.forEach(id => {
+    const el = document.getElementById(id);
+    if (el && el.getBoundingClientRect().top <= 120) cur = id;
+  });
+  document.querySelectorAll('.nav-link').forEach((l,i) => {
+    l.classList.toggle('active', l.getAttribute('onclick')?.includes(sections[i] || ''));
+  });
+});
+
+// ---- Tabs ----
+function showTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ---- Sort table ----
+function sortTable(th, col) {
+  const tbody = th.closest('table').querySelector('tbody');
+  const rows = Array.from(tbody.querySelectorAll('tr'));
+  const asc = th.dataset.sort !== 'asc';
+  th.dataset.sort = asc ? 'asc' : 'desc';
+  rows.sort((a, b) => {
+    const va = a.cells[col].textContent.trim();
+    const vb = b.cells[col].textContent.trim();
+    const na = parseFloat(va), nb = parseFloat(vb);
+    if (!isNaN(na) && !isNaN(nb)) return asc ? na - nb : nb - na;
+    return asc ? va.localeCompare(vb) : vb.localeCompare(va);
+  });
+  rows.forEach(r => tbody.appendChild(r));
+}
+
+// ---- Gallery builder ----
+let allFigs = [];
+function buildGallery(containerId, imgs, wide) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  imgs.forEach(src => {
+    const card = document.createElement('div');
+    card.className = 'fig-card' + (wide ? ' wide' : '');
+    const fname = src.split('/').pop();
+    card.innerHTML = `<img src="${src}" alt="${fname}" loading="lazy"><div class="fig-label">${fname}</div>`;
+    card.onclick = () => openLB(src, allFigs, allFigs.indexOf(src));
+    el.appendChild(card);
+    allFigs.push(src);
+  });
+}
+
+const eamFigs = [
+  'fme_output/eam/eam_h0_TS.png', 'fme_output/eam/eam_h0_LHFLX.png',
+  'fme_output/eam/eam_h0_PRECT.png', 'fme_output/eam/eam_h0_ICEFRAC.png',
+  'fme_output/eam/eam_h0_FLUT.png', 'fme_output/eam/eam_h0_FSDS.png',
+  'fme_output/eam/eam_h0_T_0.png', 'fme_output/eam/eam_h0_T_7.png',
+  'fme_output/eam/eam_tape1_TS.png', 'fme_output/eam/eam_tape1_LHFLX.png',
+  'fme_output/eam/eam_tape1_PRECT.png', 'fme_output/eam/eam_tape1_ICEFRAC.png',
+  'fme_output/eam/eam_tape1_SHFLX.png', 'fme_output/eam/eam_tape1_FLUT.png',
+  'fme_output/eam/eam_tape1_FSDS.png', 'fme_output/eam/eam_tape3_T_1.png',
+  'fme_output/eam/eam_tape3_T_8.png'
+];
+const compFigs = [
+  'fme_output/comparisons/eam_h0_T_all_layers.png', 'fme_output/comparisons/eam_h0_STW_all_layers.png',
+  'fme_output/comparisons/eam_h0_T_zonal_mean.png', 'fme_output/comparisons/eam_tape3_T_all_layers.png',
+  'fme_output/comparisons/eam_tape3_Q_all_layers.png', 'fme_output/comparisons/eam_tape3_T_zonal_mean.png',
+  'fme_output/comparisons/mpaso_zonal_mean_sst_sss.png'
+];
+const xvFigs = [
+  'fme_output/cross_verify/xv_native_vs_remap_TS.png', 'fme_output/cross_verify/xv_native_vs_remap_PS.png',
+  'fme_output/cross_verify/xv_native_vs_remap_LHFLX.png', 'fme_output/cross_verify/xv_native_vs_remap_PRECT.png',
+  'fme_output/cross_verify/xv_native_vs_remap_ICEFRAC.png', 'fme_output/cross_verify/xv_native_vs_remap_FLUT.png',
+  'fme_output/cross_verify/xv_native_vs_remap_SOLIN.png', 'fme_output/cross_verify/xv_fme_T_7_remap.png',
+  'fme_output/cross_verify/xv_fme_STW_7_remap.png'
+];
+
+buildGallery('gallery-eam', eamFigs, false);
+buildGallery('gallery-comp', compFigs, true);
+buildGallery('gallery-xv', xvFigs, true);
+buildGallery('gallery-xv-inline', xvFigs, true);
+
+// ---- Lightbox ----
+let lbFigs = [], lbIdx = 0;
+function openLB(src, figs, idx) {
+  lbFigs = figs; lbIdx = idx;
+  document.getElementById('lb-img').src = src;
+  document.getElementById('lb-cap').textContent = src.split('/').pop() + '  (' + (idx+1) + '/' + figs.length + ')';
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLB() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function navLB(dir) {
+  lbIdx = (lbIdx + dir + lbFigs.length) % lbFigs.length;
+  const src = lbFigs[lbIdx];
+  document.getElementById('lb-img').src = src;
+  document.getElementById('lb-cap').textContent = src.split('/').pop() + '  (' + (lbIdx+1) + '/' + lbFigs.length + ')';
+}
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('lightbox').classList.contains('open')) return;
+  if (e.key === 'Escape') closeLB();
+  if (e.key === 'ArrowRight') navLB(1);
+  if (e.key === 'ArrowLeft') navLB(-1);
+});
+document.getElementById('lightbox').addEventListener('click', e => {
+  if (e.target === document.getElementById('lightbox')) closeLB();
+});
+</script>
+</body>
+</html>
