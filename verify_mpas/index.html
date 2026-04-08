@@ -1,0 +1,355 @@
+    <!DOCTYPE html><html><head>
+    <meta charset="utf-8"/>
+    <title>FME MPAS Output Verification</title>
+    <style>
+      * { box-sizing: border-box; }
+      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+             margin: 0; padding: 0; background: #f0f2f5; color: #333; }
+      .container { max-width: 1600px; margin: 0 auto; padding: 20px 30px; }
+      header { background: #1a2744; color: #fff; padding: 20px 30px; }
+      header h1 { margin: 0 0 6px 0; font-size: 1.6em; }
+      header .status { font-size: 1.2em; font-weight: bold;
+                        color: #6fcf6f; }
+      h2 { color: #1a2744; margin-top: 35px; border-bottom: 2px solid #1a2744;
+            padding-bottom: 6px; font-size: 1.3em; }
+      h3 { color: #2c3e50; margin-top: 25px; }
+      h4 { color: #555; margin: 8px 0 4px; font-size: 0.95em; }
+      nav { background: #fff; padding: 12px 16px; border-radius: 6px;
+             box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin: 15px 0;
+             display: flex; flex-wrap: wrap; gap: 8px; position: sticky;
+             top: 0; z-index: 100; }
+      nav a { color: #1a2744; text-decoration: none; padding: 5px 12px;
+               background: #e8eef4; border-radius: 4px; font-size: 0.85em;
+               font-weight: 500; transition: all 0.15s; }
+      nav a:hover { background: #1a2744; color: #fff; }
+      table { border-collapse: collapse; width: 100%; background: #fff;
+               box-shadow: 0 1px 3px rgba(0,0,0,0.08); border-radius: 4px;
+               overflow: hidden; margin-bottom: 16px; }
+      td, th { border: 1px solid #e0e0e0; padding: 8px 14px; text-align: left; }
+      th { background: #1a2744; color: #fff; font-weight: 600; font-size: 0.9em; }
+      .pass { color: #2a7d2a; font-weight: bold; }
+      .fail { color: #c33; font-weight: bold; }
+      .comparison { display: flex; gap: 24px; flex-wrap: wrap; }
+      .col { flex: 1; min-width: 420px; }
+      .gallery { display: flex; flex-wrap: wrap; gap: 12px; }
+      .fig { display: inline-block; margin: 4px; vertical-align: top; }
+      .fig img { max-width: 520px; width: 100%; border: 1px solid #ccc; border-radius: 4px;
+                  transition: transform 0.2s; cursor: zoom-in; }
+      .fig img:hover { transform: scale(1.02); box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+      .fig span { display: block; font-size: 0.75em; color: #888; margin-top: 2px; }
+      .fig.wide img { max-width: 900px; }
+      details { margin: 10px 0; background: #fff; border-radius: 4px;
+                 box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+      summary { cursor: pointer; font-weight: 600; color: #1a2744; padding: 10px 14px; }
+      summary:hover { background: #f5f7fa; }
+      .timing-container { background: #fff; padding: 16px; border-radius: 4px;
+                           box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+                           overflow-x: auto; max-height: 500px; overflow-y: auto; }
+      .timing-table td { font-family: 'Courier New', monospace; font-size: 0.85em;
+                          padding: 4px 10px; white-space: nowrap; }
+      footer { margin-top: 40px; padding: 16px 30px; border-top: 2px solid #1a2744;
+                color: #777; font-size: 0.8em; background: #fff; text-align: center; }
+      /* Lightbox overlay */
+      .lightbox { display:none; position:fixed; top:0; left:0; width:100%; height:100%;
+                   background:rgba(0,0,0,0.88); z-index:1000; cursor:zoom-out;
+                   align-items:center; justify-content:center; }
+      .lightbox.active { display:flex; }
+      .lightbox img { max-width:95%; max-height:95%; border-radius:6px;
+                       box-shadow: 0 4px 20px rgba(0,0,0,0.4); }
+    </style>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var lb = document.createElement('div');
+      lb.className = 'lightbox';
+      var lbImg = document.createElement('img');
+      lb.appendChild(lbImg);
+      document.body.appendChild(lb);
+      lb.addEventListener('click', function() { lb.classList.remove('active'); });
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') lb.classList.remove('active');
+      });
+      document.querySelectorAll('.fig a').forEach(function(a) {
+        a.addEventListener('click', function(e) {
+          e.preventDefault();
+          lbImg.src = this.href;
+          lb.classList.add('active');
+        });
+      });
+    });
+    </script>
+    </head><body>
+    <header>
+      <h1>FME MPAS Online Output Verification</h1>
+      <span class="status">ALL PASS</span>
+    </header>
+    <div class="container">
+
+    <nav><a href="#Summary">Summary</a>
+<a href="#File_Inventory">File Inventory</a>
+<a href="#Fill_NaN_Report">Fill NaN Report</a>
+<a href="#MPAS_O_Depth_Coarsening">MPAS-O Depth Coarsening</a>
+<a href="#MPAS_O_Derived_Fields">MPAS-O Derived Fields</a>
+<a href="#MPAS_O_Vertical_Reduction">MPAS-O Vertical Reduction</a>
+<a href="#MPAS_SI_Derived_Fields">MPAS-SI Derived Fields</a>
+<a href="#Comparisons">Comparisons</a>
+<a href="#Timing">Timing</a>
+</nav>
+
+    <h2 id="Summary">Component Summary</h2>
+    <table>
+    <tr><th>Component</th><th>Status</th><th>Issues</th></tr>
+    <tr><td>MPAS-O Depth Coarsening (native)</td><td class="pass">PASS</td><td>0</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td class="pass">PASS</td><td>0</td></tr>
+<tr><td>MPAS-O Derived Fields (native)</td><td class="pass">PASS</td><td>0</td></tr>
+<tr><td>MPAS-O Derived Fields (remapped)</td><td class="pass">PASS</td><td>0</td></tr>
+<tr><td>MPAS-O Vertical Reduction (native)</td><td class="pass">PASS</td><td>0</td></tr>
+<tr><td>MPAS-O Vertical Reduction (remapped)</td><td class="pass">PASS</td><td>0</td></tr>
+<tr><td>MPAS-SI Derived Fields (native)</td><td class="pass">PASS</td><td>0</td></tr>
+<tr><td>MPAS-SI Derived Fields (remapped)</td><td class="pass">PASS</td><td>0</td></tr>
+
+    </table>
+
+
+
+    <h2 id="File_Inventory">File Inventory</h2>
+    <table>
+    <tr><th>Category</th><th>File Count</th></tr>
+    <tr><td>MPAS-O depth coarsening</td><td class="pass">1</td></tr>
+<tr><td>MPAS-O depth coarsening (R)</td><td class="pass">3</td></tr>
+<tr><td>MPAS-O derived fields</td><td class="pass">1</td></tr>
+<tr><td>MPAS-O derived fields (R)</td><td class="pass">3</td></tr>
+<tr><td>MPAS-O vertical reduce</td><td class="pass">1</td></tr>
+<tr><td>MPAS-O vertical reduce (R)</td><td class="pass">3</td></tr>
+<tr><td>MPAS-SI derived fields</td><td class="pass">1</td></tr>
+<tr><td>MPAS-SI derived fields (R)</td><td class="pass">3</td></tr>
+
+    </table>
+
+    <h2 id="Fill_NaN_Report">Fill / NaN Report</h2>
+    <details><summary>Variable-level fill fraction details</summary>
+    <table>
+    <tr><th>Component</th><th>Variable</th><th>Total Cells</th><th>Valid</th><th>Fill/NaN</th><th>Fill %</th></tr>
+    <tr><td>MPAS-O Depth Coarsening (native)</td><td>temperatureCoarsened</td><td>23,252,200</td><td>15,555,261</td><td>7,696,939</td><td class="pass">33.1%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (native)</td><td>salinityCoarsened</td><td>23,252,200</td><td>15,555,261</td><td>7,696,939</td><td class="pass">33.1%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (native)</td><td>velocityZonalCoarsened</td><td>23,252,200</td><td>15,555,261</td><td>7,696,939</td><td class="pass">33.1%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (native)</td><td>velocityMeridionalCoarsened</td><td>23,252,200</td><td>15,555,261</td><td>7,696,939</td><td class="pass">33.1%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (native)</td><td>layerThicknessCoarsened</td><td>23,252,200</td><td>15,555,261</td><td>7,696,939</td><td class="pass">33.1%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/temperatureCoarsened_0</td><td>129,600</td><td>89,784</td><td>39,816</td><td class="pass">30.7%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/temperatureCoarsened_1</td><td>129,600</td><td>89,184</td><td>40,416</td><td class="pass">31.2%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/temperatureCoarsened_2</td><td>129,600</td><td>88,371</td><td>41,229</td><td class="pass">31.8%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/temperatureCoarsened_3</td><td>129,600</td><td>87,764</td><td>41,836</td><td class="pass">32.3%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/temperatureCoarsened_4</td><td>129,600</td><td>87,108</td><td>42,492</td><td class="pass">32.8%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/temperatureCoarsened_5</td><td>129,600</td><td>85,674</td><td>43,926</td><td class="pass">33.9%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/temperatureCoarsened_6</td><td>129,600</td><td>84,649</td><td>44,951</td><td class="pass">34.7%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/temperatureCoarsened_7</td><td>129,600</td><td>83,950</td><td>45,650</td><td class="pass">35.2%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/temperatureCoarsened_8</td><td>129,600</td><td>83,296</td><td>46,304</td><td class="pass">35.7%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/temperatureCoarsened_9</td><td>129,600</td><td>82,394</td><td>47,206</td><td class="pass">36.4%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/temperatureCoarsened_10</td><td>129,600</td><td>80,030</td><td>49,570</td><td class="pass">38.2%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/temperatureCoarsened_11</td><td>129,600</td><td>78,910</td><td>50,690</td><td class="pass">39.1%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/temperatureCoarsened_12</td><td>129,600</td><td>76,552</td><td>53,048</td><td class="pass">40.9%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/temperatureCoarsened_13</td><td>129,600</td><td>76,408</td><td>53,192</td><td class="pass">41.0%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/temperatureCoarsened_14</td><td>129,600</td><td>74,436</td><td>55,164</td><td class="pass">42.6%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/temperatureCoarsened_15</td><td>129,600</td><td>73,430</td><td>56,170</td><td class="pass">43.3%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/temperatureCoarsened_16</td><td>129,600</td><td>68,594</td><td>61,006</td><td class="pass">47.1%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/temperatureCoarsened_17</td><td>129,600</td><td>62,468</td><td>67,132</td><td class="fail">51.8%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/temperatureCoarsened_18</td><td>129,600</td><td>31,201</td><td>98,399</td><td class="fail">75.9%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/salinityCoarsened_0</td><td>129,600</td><td>89,784</td><td>39,816</td><td class="pass">30.7%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/salinityCoarsened_1</td><td>129,600</td><td>89,184</td><td>40,416</td><td class="pass">31.2%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/salinityCoarsened_2</td><td>129,600</td><td>88,371</td><td>41,229</td><td class="pass">31.8%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/salinityCoarsened_3</td><td>129,600</td><td>87,764</td><td>41,836</td><td class="pass">32.3%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/salinityCoarsened_4</td><td>129,600</td><td>87,108</td><td>42,492</td><td class="pass">32.8%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/salinityCoarsened_5</td><td>129,600</td><td>85,674</td><td>43,926</td><td class="pass">33.9%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/salinityCoarsened_6</td><td>129,600</td><td>84,649</td><td>44,951</td><td class="pass">34.7%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/salinityCoarsened_7</td><td>129,600</td><td>83,950</td><td>45,650</td><td class="pass">35.2%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/salinityCoarsened_8</td><td>129,600</td><td>83,296</td><td>46,304</td><td class="pass">35.7%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/salinityCoarsened_9</td><td>129,600</td><td>82,394</td><td>47,206</td><td class="pass">36.4%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/salinityCoarsened_10</td><td>129,600</td><td>80,030</td><td>49,570</td><td class="pass">38.2%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/salinityCoarsened_11</td><td>129,600</td><td>78,910</td><td>50,690</td><td class="pass">39.1%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/salinityCoarsened_12</td><td>129,600</td><td>76,552</td><td>53,048</td><td class="pass">40.9%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/salinityCoarsened_13</td><td>129,600</td><td>76,408</td><td>53,192</td><td class="pass">41.0%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/salinityCoarsened_14</td><td>129,600</td><td>74,436</td><td>55,164</td><td class="pass">42.6%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/salinityCoarsened_15</td><td>129,600</td><td>73,430</td><td>56,170</td><td class="pass">43.3%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/salinityCoarsened_16</td><td>129,600</td><td>68,594</td><td>61,006</td><td class="pass">47.1%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/salinityCoarsened_17</td><td>129,600</td><td>62,468</td><td>67,132</td><td class="fail">51.8%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/salinityCoarsened_18</td><td>129,600</td><td>31,201</td><td>98,399</td><td class="fail">75.9%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityZonalCoarsened_0</td><td>129,600</td><td>89,784</td><td>39,816</td><td class="pass">30.7%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityZonalCoarsened_1</td><td>129,600</td><td>89,184</td><td>40,416</td><td class="pass">31.2%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityZonalCoarsened_2</td><td>129,600</td><td>88,371</td><td>41,229</td><td class="pass">31.8%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityZonalCoarsened_3</td><td>129,600</td><td>87,764</td><td>41,836</td><td class="pass">32.3%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityZonalCoarsened_4</td><td>129,600</td><td>87,108</td><td>42,492</td><td class="pass">32.8%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityZonalCoarsened_5</td><td>129,600</td><td>85,674</td><td>43,926</td><td class="pass">33.9%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityZonalCoarsened_6</td><td>129,600</td><td>84,649</td><td>44,951</td><td class="pass">34.7%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityZonalCoarsened_7</td><td>129,600</td><td>83,950</td><td>45,650</td><td class="pass">35.2%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityZonalCoarsened_8</td><td>129,600</td><td>83,296</td><td>46,304</td><td class="pass">35.7%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityZonalCoarsened_9</td><td>129,600</td><td>82,394</td><td>47,206</td><td class="pass">36.4%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityZonalCoarsened_10</td><td>129,600</td><td>80,030</td><td>49,570</td><td class="pass">38.2%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityZonalCoarsened_11</td><td>129,600</td><td>78,910</td><td>50,690</td><td class="pass">39.1%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityZonalCoarsened_12</td><td>129,600</td><td>76,552</td><td>53,048</td><td class="pass">40.9%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityZonalCoarsened_13</td><td>129,600</td><td>76,408</td><td>53,192</td><td class="pass">41.0%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityZonalCoarsened_14</td><td>129,600</td><td>74,436</td><td>55,164</td><td class="pass">42.6%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityZonalCoarsened_15</td><td>129,600</td><td>73,430</td><td>56,170</td><td class="pass">43.3%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityZonalCoarsened_16</td><td>129,600</td><td>68,594</td><td>61,006</td><td class="pass">47.1%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityZonalCoarsened_17</td><td>129,600</td><td>62,468</td><td>67,132</td><td class="fail">51.8%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityZonalCoarsened_18</td><td>129,600</td><td>31,201</td><td>98,399</td><td class="fail">75.9%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityMeridionalCoarsened_0</td><td>129,600</td><td>89,784</td><td>39,816</td><td class="pass">30.7%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityMeridionalCoarsened_1</td><td>129,600</td><td>89,184</td><td>40,416</td><td class="pass">31.2%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityMeridionalCoarsened_2</td><td>129,600</td><td>88,371</td><td>41,229</td><td class="pass">31.8%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityMeridionalCoarsened_3</td><td>129,600</td><td>87,764</td><td>41,836</td><td class="pass">32.3%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityMeridionalCoarsened_4</td><td>129,600</td><td>87,108</td><td>42,492</td><td class="pass">32.8%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityMeridionalCoarsened_5</td><td>129,600</td><td>85,674</td><td>43,926</td><td class="pass">33.9%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityMeridionalCoarsened_6</td><td>129,600</td><td>84,649</td><td>44,951</td><td class="pass">34.7%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityMeridionalCoarsened_7</td><td>129,600</td><td>83,950</td><td>45,650</td><td class="pass">35.2%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityMeridionalCoarsened_8</td><td>129,600</td><td>83,296</td><td>46,304</td><td class="pass">35.7%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityMeridionalCoarsened_9</td><td>129,600</td><td>82,394</td><td>47,206</td><td class="pass">36.4%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityMeridionalCoarsened_10</td><td>129,600</td><td>80,030</td><td>49,570</td><td class="pass">38.2%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityMeridionalCoarsened_11</td><td>129,600</td><td>78,910</td><td>50,690</td><td class="pass">39.1%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityMeridionalCoarsened_12</td><td>129,600</td><td>76,552</td><td>53,048</td><td class="pass">40.9%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityMeridionalCoarsened_13</td><td>129,600</td><td>76,408</td><td>53,192</td><td class="pass">41.0%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityMeridionalCoarsened_14</td><td>129,600</td><td>74,436</td><td>55,164</td><td class="pass">42.6%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityMeridionalCoarsened_15</td><td>129,600</td><td>73,430</td><td>56,170</td><td class="pass">43.3%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityMeridionalCoarsened_16</td><td>129,600</td><td>68,594</td><td>61,006</td><td class="pass">47.1%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityMeridionalCoarsened_17</td><td>129,600</td><td>62,468</td><td>67,132</td><td class="fail">51.8%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/velocityMeridionalCoarsened_18</td><td>129,600</td><td>31,201</td><td>98,399</td><td class="fail">75.9%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/layerThicknessCoarsened_0</td><td>129,600</td><td>89,784</td><td>39,816</td><td class="pass">30.7%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/layerThicknessCoarsened_1</td><td>129,600</td><td>89,184</td><td>40,416</td><td class="pass">31.2%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/layerThicknessCoarsened_2</td><td>129,600</td><td>88,371</td><td>41,229</td><td class="pass">31.8%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/layerThicknessCoarsened_3</td><td>129,600</td><td>87,764</td><td>41,836</td><td class="pass">32.3%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/layerThicknessCoarsened_4</td><td>129,600</td><td>87,108</td><td>42,492</td><td class="pass">32.8%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/layerThicknessCoarsened_5</td><td>129,600</td><td>85,674</td><td>43,926</td><td class="pass">33.9%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/layerThicknessCoarsened_6</td><td>129,600</td><td>84,649</td><td>44,951</td><td class="pass">34.7%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/layerThicknessCoarsened_7</td><td>129,600</td><td>83,950</td><td>45,650</td><td class="pass">35.2%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/layerThicknessCoarsened_8</td><td>129,600</td><td>83,296</td><td>46,304</td><td class="pass">35.7%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/layerThicknessCoarsened_9</td><td>129,600</td><td>82,394</td><td>47,206</td><td class="pass">36.4%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/layerThicknessCoarsened_10</td><td>129,600</td><td>80,030</td><td>49,570</td><td class="pass">38.2%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/layerThicknessCoarsened_11</td><td>129,600</td><td>78,910</td><td>50,690</td><td class="pass">39.1%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/layerThicknessCoarsened_12</td><td>129,600</td><td>76,552</td><td>53,048</td><td class="pass">40.9%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/layerThicknessCoarsened_13</td><td>129,600</td><td>76,408</td><td>53,192</td><td class="pass">41.0%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/layerThicknessCoarsened_14</td><td>129,600</td><td>74,436</td><td>55,164</td><td class="pass">42.6%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/layerThicknessCoarsened_15</td><td>129,600</td><td>73,430</td><td>56,170</td><td class="pass">43.3%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/layerThicknessCoarsened_16</td><td>129,600</td><td>68,594</td><td>61,006</td><td class="pass">47.1%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/layerThicknessCoarsened_17</td><td>129,600</td><td>62,468</td><td>67,132</td><td class="fail">51.8%</td></tr>
+<tr><td>MPAS-O Depth Coarsening (remapped)</td><td>remapped/layerThicknessCoarsened_18</td><td>129,600</td><td>31,201</td><td>98,399</td><td class="fail">75.9%</td></tr>
+<tr><td>MPAS-O Derived Fields (native)</td><td>sst</td><td>930,088</td><td>930,088</td><td>0</td><td class="pass">0.0%</td></tr>
+<tr><td>MPAS-O Derived Fields (native)</td><td>sss</td><td>930,088</td><td>930,088</td><td>0</td><td class="pass">0.0%</td></tr>
+<tr><td>MPAS-O Derived Fields (native)</td><td>surfaceHeatFluxTotal</td><td>930,088</td><td>930,088</td><td>0</td><td class="pass">0.0%</td></tr>
+<tr><td>MPAS-O Derived Fields (remapped)</td><td>remapped/sst</td><td>129,600</td><td>89,784</td><td>39,816</td><td class="pass">30.7%</td></tr>
+<tr><td>MPAS-O Derived Fields (remapped)</td><td>remapped/sss</td><td>129,600</td><td>89,784</td><td>39,816</td><td class="pass">30.7%</td></tr>
+<tr><td>MPAS-O Derived Fields (remapped)</td><td>remapped/surfaceHeatFluxTotal</td><td>129,600</td><td>89,784</td><td>39,816</td><td class="pass">30.7%</td></tr>
+<tr><td>MPAS-O Vertical Reduction (native)</td><td>oceanHeatContent</td><td>930,088</td><td>137,886</td><td>792,202</td><td class="fail">85.2%</td></tr>
+<tr><td>MPAS-O Vertical Reduction (native)</td><td>freshwaterContent</td><td>930,088</td><td>930,088</td><td>0</td><td class="pass">0.0%</td></tr>
+<tr><td>MPAS-O Vertical Reduction (native)</td><td>kineticEnergy</td><td>930,088</td><td>930,088</td><td>0</td><td class="pass">0.0%</td></tr>
+<tr><td>MPAS-O Vertical Reduction (remapped)</td><td>remapped/oceanHeatContent</td><td>129,600</td><td>27,460</td><td>102,140</td><td class="fail">78.8%</td></tr>
+<tr><td>MPAS-O Vertical Reduction (remapped)</td><td>remapped/freshwaterContent</td><td>129,600</td><td>89,784</td><td>39,816</td><td class="pass">30.7%</td></tr>
+<tr><td>MPAS-O Vertical Reduction (remapped)</td><td>remapped/kineticEnergy</td><td>129,600</td><td>89,784</td><td>39,816</td><td class="pass">30.7%</td></tr>
+<tr><td>MPAS-SI Derived Fields (native)</td><td>iceAreaTotal</td><td>930,088</td><td>930,088</td><td>0</td><td class="pass">0.0%</td></tr>
+<tr><td>MPAS-SI Derived Fields (native)</td><td>iceVolumeTotal</td><td>930,088</td><td>930,088</td><td>0</td><td class="pass">0.0%</td></tr>
+<tr><td>MPAS-SI Derived Fields (native)</td><td>snowVolumeTotal</td><td>930,088</td><td>930,088</td><td>0</td><td class="pass">0.0%</td></tr>
+<tr><td>MPAS-SI Derived Fields (native)</td><td>iceThicknessMean</td><td>930,088</td><td>112,299</td><td>817,789</td><td class="fail">87.9%</td></tr>
+<tr><td>MPAS-SI Derived Fields (native)</td><td>surfaceTemperatureMean</td><td>930,088</td><td>112,299</td><td>817,789</td><td class="fail">87.9%</td></tr>
+<tr><td>MPAS-SI Derived Fields (native)</td><td>airStressZonal</td><td>930,088</td><td>112,299</td><td>817,789</td><td class="fail">87.9%</td></tr>
+<tr><td>MPAS-SI Derived Fields (native)</td><td>airStressMeridional</td><td>930,088</td><td>112,299</td><td>817,789</td><td class="fail">87.9%</td></tr>
+<tr><td>MPAS-SI Derived Fields (remapped)</td><td>remapped/iceAreaTotal</td><td>129,600</td><td>89,784</td><td>39,816</td><td class="pass">30.7%</td></tr>
+<tr><td>MPAS-SI Derived Fields (remapped)</td><td>remapped/iceVolumeTotal</td><td>129,600</td><td>89,784</td><td>39,816</td><td class="pass">30.7%</td></tr>
+<tr><td>MPAS-SI Derived Fields (remapped)</td><td>remapped/snowVolumeTotal</td><td>129,600</td><td>89,784</td><td>39,816</td><td class="pass">30.7%</td></tr>
+<tr><td>MPAS-SI Derived Fields (remapped)</td><td>remapped/iceThicknessMean</td><td>129,600</td><td>26,742</td><td>102,858</td><td class="fail">79.4%</td></tr>
+<tr><td>MPAS-SI Derived Fields (remapped)</td><td>remapped/surfaceTemperatureMean</td><td>129,600</td><td>26,742</td><td>102,858</td><td class="fail">79.4%</td></tr>
+<tr><td>MPAS-SI Derived Fields (remapped)</td><td>remapped/airStressZonal</td><td>129,600</td><td>26,742</td><td>102,858</td><td class="fail">79.4%</td></tr>
+<tr><td>MPAS-SI Derived Fields (remapped)</td><td>remapped/airStressMeridional</td><td>129,600</td><td>26,742</td><td>102,858</td><td class="fail">79.4%</td></tr>
+
+    </table>
+    </details>
+
+
+
+    <h2>Diagnostic Figures</h2>
+    <h3 id="MPAS_O_Depth_Coarsening">MPAS-O Depth Coarsening</h3>
+<div class="comparison">
+<div class="col"><h4>Remapped (lat-lon)</h4>
+<div class="fig"><a href="fme_output/mpaso_remapped/mpaso_depth_temperatureCoarsened_0_remapped.png"><img src="fme_output/mpaso_remapped/mpaso_depth_temperatureCoarsened_0_remapped.png"/></a><span>mpaso_depth_temperatureCoarsened_0_remapped.png</span></div>
+<div class="fig"><a href="fme_output/mpaso_remapped/mpaso_depth_salinityCoarsened_0_remapped.png"><img src="fme_output/mpaso_remapped/mpaso_depth_salinityCoarsened_0_remapped.png"/></a><span>mpaso_depth_salinityCoarsened_0_remapped.png</span></div>
+<div class="fig"><a href="fme_output/mpaso_remapped/mpaso_depth_profile_temperatureCoarsened_remapped.png"><img src="fme_output/mpaso_remapped/mpaso_depth_profile_temperatureCoarsened_remapped.png"/></a><span>mpaso_depth_profile_temperatureCoarsened_remapped.png</span></div>
+<div class="fig"><a href="fme_output/mpaso_remapped/mpaso_depth_profile_salinityCoarsened_remapped.png"><img src="fme_output/mpaso_remapped/mpaso_depth_profile_salinityCoarsened_remapped.png"/></a><span>mpaso_depth_profile_salinityCoarsened_remapped.png</span></div>
+</div>
+</div>
+<h3 id="MPAS_O_Derived_Fields">MPAS-O Derived Fields</h3>
+<div class="comparison">
+<div class="col"><h4>Remapped (lat-lon)</h4>
+<div class="fig"><a href="fme_output/mpaso_remapped/mpaso_derived_sst_remapped.png"><img src="fme_output/mpaso_remapped/mpaso_derived_sst_remapped.png"/></a><span>mpaso_derived_sst_remapped.png</span></div>
+<div class="fig"><a href="fme_output/mpaso_remapped/mpaso_derived_sss_remapped.png"><img src="fme_output/mpaso_remapped/mpaso_derived_sss_remapped.png"/></a><span>mpaso_derived_sss_remapped.png</span></div>
+<div class="fig"><a href="fme_output/mpaso_remapped/mpaso_derived_surfaceHeatFluxTotal_remapped.png"><img src="fme_output/mpaso_remapped/mpaso_derived_surfaceHeatFluxTotal_remapped.png"/></a><span>mpaso_derived_surfaceHeatFluxTotal_remapped.png</span></div>
+</div>
+</div>
+<h3 id="MPAS_O_Vertical_Reduction">MPAS-O Vertical Reduction</h3>
+<div class="comparison">
+<div class="col"><h4>Remapped (lat-lon)</h4>
+<div class="fig"><a href="fme_output/mpaso_remapped/mpaso_vertreduce_oceanHeatContent_remapped.png"><img src="fme_output/mpaso_remapped/mpaso_vertreduce_oceanHeatContent_remapped.png"/></a><span>mpaso_vertreduce_oceanHeatContent_remapped.png</span></div>
+<div class="fig"><a href="fme_output/mpaso_remapped/mpaso_vertreduce_freshwaterContent_remapped.png"><img src="fme_output/mpaso_remapped/mpaso_vertreduce_freshwaterContent_remapped.png"/></a><span>mpaso_vertreduce_freshwaterContent_remapped.png</span></div>
+<div class="fig"><a href="fme_output/mpaso_remapped/mpaso_vertreduce_kineticEnergy_remapped.png"><img src="fme_output/mpaso_remapped/mpaso_vertreduce_kineticEnergy_remapped.png"/></a><span>mpaso_vertreduce_kineticEnergy_remapped.png</span></div>
+</div>
+</div>
+<h3 id="MPAS_SI_Derived_Fields">MPAS-SI Derived Fields</h3>
+<div class="comparison">
+<div class="col"><h4>Native Grid</h4>
+<div class="fig"><a href="fme_output/mpassi_native/mpassi_iceAreaTotal_native.png"><img src="fme_output/mpassi_native/mpassi_iceAreaTotal_native.png"/></a><span>mpassi_iceAreaTotal_native.png</span></div>
+<div class="fig"><a href="fme_output/mpassi_native/mpassi_iceVolumeTotal_native.png"><img src="fme_output/mpassi_native/mpassi_iceVolumeTotal_native.png"/></a><span>mpassi_iceVolumeTotal_native.png</span></div>
+<div class="fig"><a href="fme_output/mpassi_native/mpassi_surfaceTemperatureMean_native.png"><img src="fme_output/mpassi_native/mpassi_surfaceTemperatureMean_native.png"/></a><span>mpassi_surfaceTemperatureMean_native.png</span></div>
+<div class="fig"><a href="fme_output/mpassi_native/mpassi_airStressZonal_native.png"><img src="fme_output/mpassi_native/mpassi_airStressZonal_native.png"/></a><span>mpassi_airStressZonal_native.png</span></div>
+</div>
+<div class="col"><h4>Remapped (lat-lon)</h4>
+<div class="fig"><a href="fme_output/mpassi_remapped/mpassi_iceAreaTotal_remapped.png"><img src="fme_output/mpassi_remapped/mpassi_iceAreaTotal_remapped.png"/></a><span>mpassi_iceAreaTotal_remapped.png</span></div>
+<div class="fig"><a href="fme_output/mpassi_remapped/mpassi_iceVolumeTotal_remapped.png"><img src="fme_output/mpassi_remapped/mpassi_iceVolumeTotal_remapped.png"/></a><span>mpassi_iceVolumeTotal_remapped.png</span></div>
+<div class="fig"><a href="fme_output/mpassi_remapped/mpassi_surfaceTemperatureMean_remapped.png"><img src="fme_output/mpassi_remapped/mpassi_surfaceTemperatureMean_remapped.png"/></a><span>mpassi_surfaceTemperatureMean_remapped.png</span></div>
+<div class="fig"><a href="fme_output/mpassi_remapped/mpassi_snowVolumeTotal_remapped.png"><img src="fme_output/mpassi_remapped/mpassi_snowVolumeTotal_remapped.png"/></a><span>mpassi_snowVolumeTotal_remapped.png</span></div>
+<div class="fig"><a href="fme_output/mpassi_remapped/mpassi_airStressZonal_remapped.png"><img src="fme_output/mpassi_remapped/mpassi_airStressZonal_remapped.png"/></a><span>mpassi_airStressZonal_remapped.png</span></div>
+</div>
+</div>
+<h3 id="Comparisons">Comparisons</h3>
+<div class="gallery">
+<div class="fig wide"><a href="fme_output/comparisons/compare_mpassi_iceAreaTotal.png"><img src="fme_output/comparisons/compare_mpassi_iceAreaTotal.png"/></a><span>compare_mpassi_iceAreaTotal.png</span></div>
+<div class="fig wide"><a href="fme_output/comparisons/compare_mpassi_iceVolumeTotal.png"><img src="fme_output/comparisons/compare_mpassi_iceVolumeTotal.png"/></a><span>compare_mpassi_iceVolumeTotal.png</span></div>
+<div class="fig wide"><a href="fme_output/comparisons/compare_mpassi_surfaceTemperatureMean.png"><img src="fme_output/comparisons/compare_mpassi_surfaceTemperatureMean.png"/></a><span>compare_mpassi_surfaceTemperatureMean.png</span></div>
+<div class="fig wide"><a href="fme_output/comparisons/mpaso_zonal_mean_sst_sss.png"><img src="fme_output/comparisons/mpaso_zonal_mean_sst_sss.png"/></a><span>mpaso_zonal_mean_sst_sss.png</span></div>
+</div>
+
+
+
+    <h2 id="Timing">Performance Timing</h2>
+    <div class="timing-container">
+    <table class="timing-table">
+    <tr><td>*****</td><td>GLOBAL</td><td>STATISTICS</td><td>(</td><td>512</td><td>MPI</td><td>TASKS)</td><td>*****</td></tr>
+<tr><td>name</td><td>on</td><td>processes</td><td>threads</td><td>count</td><td>walltotal</td><td>wallmax</td><td>(proc</td><td>thrd</td><td>)</td><td>wallmin</td><td>(proc</td><td>thrd</td><td>)</td></tr>
+<tr><td>"CPL:INIT"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>5.381409e+04</td><td>105.179</td><td>(</td><td>179</td><td>0)</td><td>105.053</td><td>(</td><td>506</td><td>0)</td></tr>
+<tr><td>"CPL:cime_pre_init1"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.305282e+03</td><td>2.623</td><td>(</td><td>179</td><td>0)</td><td>2.497</td><td>(</td><td>425</td><td>0)</td></tr>
+<tr><td>"CPL:mpi_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>9.889760e+02</td><td>2.006</td><td>(</td><td>179</td><td>0)</td><td>1.879</td><td>(</td><td>444</td><td>0)</td></tr>
+<tr><td>"CPL:ESMF_Initialize"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>5.830304e-01</td><td>0.003</td><td>(</td><td>127</td><td>0)</td><td>0.000</td><td>(</td><td>219</td><td>0)</td></tr>
+<tr><td>"CPL:cime_pre_init2"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.116645e+02</td><td>0.221</td><td>(</td><td>431</td><td>0)</td><td>0.215</td><td>(</td><td>305</td><td>0)</td></tr>
+<tr><td>"CPL:seq_infodata_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.743864e+01</td><td>0.071</td><td>(</td><td>49</td><td>0)</td><td>0.008</td><td>(</td><td>399</td><td>0)</td></tr>
+<tr><td>"CPL:seq_timemgr_clockInit"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>3.167207e+00</td><td>0.009</td><td>(</td><td>205</td><td>0)</td><td>0.002</td><td>(</td><td>387</td><td>0)</td></tr>
+<tr><td>"CPL:cime_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>5.239651e+04</td><td>102.339</td><td>(</td><td>305</td><td>0)</td><td>102.336</td><td>(</td><td>207</td><td>0)</td></tr>
+<tr><td>"CPL:init_comps"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>4.533330e+04</td><td>88.546</td><td>(</td><td>109</td><td>0)</td><td>88.528</td><td>(</td><td>511</td><td>0)</td></tr>
+<tr><td>"CPL:comp_init_pre_all"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.578020e-01</td><td>0.001</td><td>(</td><td>436</td><td>0)</td><td>0.000</td><td>(</td><td>186</td><td>0)</td></tr>
+<tr><td>"comp_init_cc_iac"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>2.259531e+00</td><td>0.006</td><td>(</td><td>132</td><td>0)</td><td>0.003</td><td>(</td><td>196</td><td>0)</td></tr>
+<tr><td>"z_i:comp_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>6.494398e-01</td><td>0.002</td><td>(</td><td>218</td><td>0)</td><td>0.000</td><td>(</td><td>394</td><td>0)</td></tr>
+<tr><td>"CPL:comp_init_cc_atm"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>2.610884e+04</td><td>50.994</td><td>(</td><td>109</td><td>0)</td><td>50.994</td><td>(</td><td>258</td><td>0)</td></tr>
+<tr><td>"a_i:comp_init"</td><td>-</td><td>512</td><td>512</td><td>1.024000e+03</td><td>2.824928e+04</td><td>55.222</td><td>(</td><td>196</td><td>0)</td><td>55.061</td><td>(</td><td>9</td><td>0)</td></tr>
+<tr><td>"a_i:cam_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>2.600281e+04</td><td>50.788</td><td>(</td><td>130</td><td>0)</td><td>50.786</td><td>(</td><td>299</td><td>0)</td></tr>
+<tr><td>"a_i:cam_initfiles_open"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>5.598269e+01</td><td>0.111</td><td>(</td><td>130</td><td>0)</td><td>0.108</td><td>(</td><td>351</td><td>0)</td></tr>
+<tr><td>"a_i:cam_initial"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>3.722247e+03</td><td>7.270</td><td>(</td><td>0</td><td>0)</td><td>7.270</td><td>(</td><td>467</td><td>0)</td></tr>
+<tr><td>"a_i:dyn_init1"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>6.429219e+01</td><td>0.129</td><td>(</td><td>471</td><td>0)</td><td>0.118</td><td>(</td><td>205</td><td>0)</td></tr>
+<tr><td>"a_i:hycoef_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.595461e+01</td><td>0.034</td><td>(</td><td>298</td><td>0)</td><td>0.027</td><td>(</td><td>163</td><td>0)</td></tr>
+<tr><td>"a_i:prim_init1"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>3.960103e+01</td><td>0.083</td><td>(</td><td>449</td><td>0)</td><td>0.071</td><td>(</td><td>355</td><td>0)</td></tr>
+<tr><td>"a_i:repro_sum_finalsum"</td><td>-</td><td>512</td><td>512</td><td>4.505600e+04</td><td>1.572579e-02</td><td>0.000</td><td>(</td><td>204</td><td>0)</td><td>0.000</td><td>(</td><td>404</td><td>0)</td></tr>
+<tr><td>"a_i:compose_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>9.208634e+00</td><td>0.021</td><td>(</td><td>427</td><td>0)</td><td>0.014</td><td>(</td><td>391</td><td>0)</td></tr>
+<tr><td>"a_i:sl_init1"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>2.460434e+00</td><td>0.009</td><td>(</td><td>99</td><td>0)</td><td>0.001</td><td>(</td><td>104</td><td>0)</td></tr>
+<tr><td>"a_i:phys_grid_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.309842e+01</td><td>0.033</td><td>(</td><td>355</td><td>0)</td><td>0.021</td><td>(</td><td>433</td><td>0)</td></tr>
+<tr><td>"a_i:initial_conds"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>3.608035e+03</td><td>7.062</td><td>(</td><td>95</td><td>0)</td><td>7.029</td><td>(</td><td>423</td><td>0)</td></tr>
+<tr><td>"a_i:PIO:initdecomp"</td><td>-</td><td>512</td><td>512</td><td>3.072000e+03</td><td>2.375918e+01</td><td>0.048</td><td>(</td><td>256</td><td>0)</td><td>0.045</td><td>(</td><td>264</td><td>0)</td></tr>
+<tr><td>"a_i:PIO:PIOc_initdecomp"</td><td>-</td><td>512</td><td>512</td><td>3.072000e+03</td><td>2.370284e+01</td><td>0.048</td><td>(</td><td>309</td><td>0)</td><td>0.045</td><td>(</td><td>264</td><td>0)</td></tr>
+<tr><td>"a_i:dyn_init2"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>3.054136e+01</td><td>0.073</td><td>(</td><td>423</td><td>0)</td><td>0.052</td><td>(</td><td>237</td><td>0)</td></tr>
+
+    </table>
+    </div>
+
+    </div>
+    <footer>Generated by verify_mpas.py &mdash; FME MPAS Online Output Processing for E3SM &mdash; 2026-04-07 14:47:54</footer>
+    </body></html>

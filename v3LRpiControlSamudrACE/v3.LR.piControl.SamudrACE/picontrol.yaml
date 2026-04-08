@@ -1,0 +1,47 @@
+experiment_dir: EXPERIMENT_DIR_PLACEHOLDER
+n_coupled_steps: 5840
+coupled_steps_in_memory: 20
+checkpoint_path: /home/ac.ngmahfouz/inference/best_inference_ckpt.tar
+data_writer:
+  ocean:
+    save_prediction_files: false
+    save_monthly_files: true
+  atmosphere:
+    save_prediction_files: false
+    save_monthly_files: true
+    files:
+      - label: 6h_surface_surface_precipitation_rate
+        names: [surface_precipitation_rate]
+      - label: 6h_surface_TS
+        names: [TS]
+      - label: 6h_surface_PS
+        names: [PS]
+      - label: 6h_surface_T7
+        names: [T_7]
+      - label: 6h_surface_V7
+        names: [V_7]
+      - label: 6h_surface_U7
+        names: [U_7]
+      - label: 6h_surface_ocean_fraction
+        names: [ocean_fraction]
+logging:
+  log_to_screen: true
+  log_to_wandb: false
+  log_to_file: true
+  project: ace-samudra-coupled-e3smv3
+  entity: ai2cm
+forcing_loader:
+  atmosphere:
+    dataset:
+      data_path: /home/ac.ngmahfouz/inference/2025-11-24-E3SMv3-piControl-100yr-coupled-IC
+      file_pattern: atmosphere-forcing-1yr.nc
+      n_repeats: 2001
+  num_data_workers: 1
+initial_condition:
+  ocean:
+    path: OCEAN_IC_PLACEHOLDER
+  atmosphere:
+    path: ATMOS_IC_PLACEHOLDER
+  start_indices:
+    first: 0
+    n_initial_conditions: 1

@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ACE2-EAMv3 piControl Diagnostics</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" id="hljs-dark-theme">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css" id="hljs-light-theme" disabled>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/python.min.js"></script>
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #242836;
+    --border: #2e3347;
+    --text: #e1e4ed;
+    --text-dim: #8b90a5;
+    --accent: #6c8aff;
+    --accent-hover: #8aa3ff;
+    --sidebar-w: 280px;
+    --code-bg: #161922;
+    --card-img-bg: #fff;
+  }
+  html.light {
+    --bg: #f5f6f8;
+    --surface: #ffffff;
+    --surface2: #eef0f4;
+    --border: #d8dbe4;
+    --text: #1a1d27;
+    --text-dim: #5c6070;
+    --accent: #4a6adf;
+    --accent-hover: #3a56c0;
+    --code-bg: #fafbfc;
+    --card-img-bg: #fff;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* Sidebar */
+  #sidebar {
+    width: var(--sidebar-w);
+    min-width: var(--sidebar-w);
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    padding: 24px 0;
+    overflow-y: auto;
+    position: fixed;
+    top: 0; bottom: 0; left: 0;
+    z-index: 100;
+  }
+  #sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px 4px;
+  }
+  #sidebar h1 {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+  }
+  #theme-toggle {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    font-size: 16px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  #theme-toggle:hover { color: var(--text); border-color: var(--accent); }
+  #sidebar .subtitle {
+    font-size: 12px;
+    color: var(--text-dim);
+    padding: 0 20px 20px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+  .nav-group { margin-bottom: 4px; }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 20px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--text-dim);
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+  }
+  .nav-item:hover { background: var(--surface2); color: var(--text); }
+  .nav-item.active {
+    background: var(--surface2);
+    color: var(--accent);
+    border-left-color: var(--accent);
+    font-weight: 600;
+  }
+  .nav-item .count {
+    margin-left: auto;
+    font-size: 11px;
+    background: var(--surface2);
+    padding: 1px 7px;
+    border-radius: 10px;
+    color: var(--text-dim);
+  }
+  .nav-item.active .count { background: rgba(108,138,255,0.15); color: var(--accent); }
+
+  /* Main */
+  #main {
+    margin-left: var(--sidebar-w);
+    flex: 1;
+    padding: 32px 40px;
+    max-width: 1400px;
+  }
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 8px;
+  }
+  .section-header h2 { font-size: 22px; font-weight: 700; }
+  .section-header .script-badge {
+    font-size: 12px;
+    background: rgba(108,138,255,0.12);
+    color: var(--accent);
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .section-header .script-badge:hover { background: rgba(108,138,255,0.25); }
+  .section-desc {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  /* Grid */
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s;
+  }
+  .card:hover { transform: translateY(-2px); border-color: var(--accent); }
+  .card img {
+    width: 100%;
+    aspect-ratio: 4/3;
+    object-fit: contain;
+    background: var(--card-img-bg);
+    display: block;
+  }
+  .card .label {
+    padding: 10px 12px;
+    font-size: 12px;
+    color: var(--text-dim);
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Lightbox */
+  #lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.92);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+  }
+  #lightbox.open { display: flex; }
+  #lightbox img {
+    max-width: 92vw;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: 4px;
+    background: #fff;
+  }
+  #lightbox .caption {
+    color: var(--text-dim);
+    font-size: 13px;
+    margin-top: 12px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+  }
+  #lightbox .nav-btn {
+    position: fixed;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.1);
+    border: none;
+    color: #fff;
+    font-size: 28px;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  #lightbox .nav-btn:hover { background: rgba(255,255,255,0.2); }
+  #lightbox .nav-btn.prev { left: 20px; }
+  #lightbox .nav-btn.next { right: 20px; }
+  #lightbox .close-btn {
+    position: fixed;
+    top: 16px;
+    right: 20px;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 32px;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.15s;
+  }
+  #lightbox .close-btn:hover { opacity: 1; }
+
+  /* Code modal */
+  #code-modal {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 1001;
+    justify-content: center;
+    align-items: center;
+  }
+  #code-modal.open { display: flex; }
+  #code-modal .modal-inner {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    width: 85vw;
+    max-width: 1000px;
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+  }
+  #code-modal .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  #code-modal .modal-header h3 {
+    font-size: 14px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    color: var(--accent);
+  }
+  #code-modal .modal-header button {
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 22px;
+    cursor: pointer;
+  }
+  #code-modal .modal-header button:hover { color: var(--text); }
+  #code-modal pre {
+    overflow: auto;
+    flex: 1;
+    margin: 0;
+    padding: 0;
+  }
+  #code-modal pre code {
+    display: block;
+    padding: 20px;
+    font-size: 13px;
+    line-height: 1.6;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    tab-size: 4;
+  }
+  /* override hljs background to match modal */
+  #code-modal pre code.hljs {
+    background: var(--code-bg);
+  }
+
+  /* Search */
+  #search-box {
+    margin: 12px 16px;
+  }
+  #search-box input {
+    width: 100%;
+    padding: 8px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--text);
+    font-size: 13px;
+    outline: none;
+  }
+  #search-box input:focus { border-color: var(--accent); }
+  #search-box input::placeholder { color: var(--text-dim); }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    #sidebar { width: 100%; position: relative; min-width: 0; }
+    #main { margin-left: 0; padding: 20px; }
+    body { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<nav id="sidebar">
+  <div id="sidebar-header">
+    <h1>ACE2-EAMv3</h1>
+    <button id="theme-toggle" onclick="toggleTheme()" title="Toggle light/dark theme">&#9790;</button>
+  </div>
+  <div class="subtitle">piControl Diagnostics Viewer</div>
+  <div id="search-box">
+    <input type="text" id="search" placeholder="Filter plots..." autocomplete="off">
+  </div>
+  <div id="nav-list"></div>
+</nav>
+
+<main id="main">
+  <div id="content"></div>
+</main>
+
+<div id="lightbox">
+  <button class="close-btn" onclick="closeLightbox()">&times;</button>
+  <button class="nav-btn prev" onclick="navigateLightbox(-1)">&lsaquo;</button>
+  <button class="nav-btn next" onclick="navigateLightbox(1)">&rsaquo;</button>
+  <img id="lb-img" src="" alt="">
+  <div class="caption" id="lb-caption"></div>
+</div>
+
+<div id="code-modal">
+  <div class="modal-inner">
+    <div class="modal-header">
+      <h3 id="code-title"></h3>
+      <button onclick="closeCode()">&times;</button>
+    </div>
+    <pre><code id="code-content"></code></pre>
+  </div>
+</div>
+
+<script>
+// ---- Theme ----
+function toggleTheme() {
+  const isLight = document.documentElement.classList.toggle('light');
+  document.getElementById('hljs-dark-theme').disabled = isLight;
+  document.getElementById('hljs-light-theme').disabled = !isLight;
+  document.getElementById('theme-toggle').innerHTML = isLight ? '&#9728;' : '&#9790;';
+  localStorage.setItem('theme', isLight ? 'light' : 'dark');
+  // re-highlight open code if any
+  const codeEl = document.getElementById('code-content');
+  if (document.getElementById('code-modal').classList.contains('open') && codeEl.dataset.highlighted) {
+    codeEl.removeAttribute('data-highlighted');
+    hljs.highlightElement(codeEl);
+  }
+}
+(function initTheme() {
+  const saved = localStorage.getItem('theme');
+  if (saved === 'light') {
+    document.documentElement.classList.add('light');
+    document.getElementById('hljs-dark-theme').disabled = true;
+    document.getElementById('hljs-light-theme').disabled = false;
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('theme-toggle').innerHTML = '&#9728;';
+    });
+  }
+})();
+
+const BASE = "v3.LR.piControl.SamudrACE";
+
+const categories = [
+  {
+    id: "general",
+    title: "General Diagnostics",
+    dir: "figs_general",
+    script: "general_diagnostics.py",
+    desc: "Climate drift, energy balance, precipitation, radiation, wind structure, and seasonal cycles.",
+    files: ["01_climate_drift.png","02_toa_energy_balance.png","03_toa_restom_map.png","04_enso_variability.png","05_precip_patterns.png","06_hadley_meridional_wind.png","07_taux_tauy_maps.png","08_taux_zonal_mean.png","09_ts_interannual_std.png","10_precip_interannual_std.png","11_water_cycle_closure.png","12_water_residual_map.png","13_vertical_temperature.png","14_vertical_temp_profiles.png","15_vertical_moisture.png","16_vertical_moisture_profiles.png","17_surface_pressure.png","18_radiation_maps.png","19_radiation_zonal.png","20_surface_energy_balance.png","21_bowen_ratio.png","22_zonal_wind_structure.png","23_jet_stream_maps.png","24_solin_forcing.png","25_seasonal_cycle.png","26_ts_climatology.png","27_summary_stats.png"]
+  },
+  {
+    id: "low_freq",
+    title: "Low-Frequency Variability",
+    dir: "figs_low_freq",
+    script: "low_freq_variability.py",
+    desc: "Power spectra, AMO/PDO indices, ENSO diagnostics, Hovmoller diagrams, Hurst exponents, and epoch variability.",
+    files: ["01_ts_lowpass_filters.png","02_ts_power_spectrum.png","03_amo_index.png","04_amo_spectrum.png","05_pdo_eof.png","06_running_std_and_mean.png","07_tropical_vs_extratropical.png","08_regional_spectra.png","09_enso_diagnostics.png","10_hovmoller_ts.png","11_lag1_autocorrelation_map.png","12_energy_budget_annual.png","13_budget_residuals.png","14_precip_variability.png","15_interhemispheric_gradient.png","16_wind_stress.png","17_cumulative_drift.png","18_century_spatial_drift.png","19_autocorrelation_function.png","20_hurst_dfa_exponent.png","21_epoch_variability_maps.png","22_surface_flux_coupling.png","23_total_water_path.png"]
+  },
+  {
+    id: "cross_variable",
+    title: "Cross-Variable Diagnostics",
+    dir: "figs_cross_variable",
+    script: "cross_variable_monthly.py",
+    desc: "ENSO teleconnections, P-E patterns, albedo, Gregory feedback plots, correlation lengths, and monsoon variability.",
+    files: ["01_enso_teleconnections.png","02_enso_zonal_response.png","03_enso_asymmetry.png","04_enso_lifecycle_hovmoller.png","05_enso_lifecycle_maps.png","06_p_minus_e.png","07_p_minus_e_timeseries.png","08_albedo_map.png","09_albedo_timeseries.png","10_albedo_variability.png","11_gregory_plot.png","12_gregory_regional.png","13_correlation_length.png","14_monsoon_precip.png","15_monsoon_winds.png","16_monsoon_variability.png","17_monsoon_enso_correlation.png","18_summary.png"]
+  },
+  {
+    id: "etccdi",
+    title: "ETCCDI Climate Extremes",
+    dir: "figs_etccdi",
+    script: "compute_etccdi.py",
+    desc: "Standard climate extreme indices (CDD, CWD, DTR, FD, GSL, SU, TNn, TNx, TXn, TXx, R10mm, R20mm, etc.) \u2014 maps and timeseries.",
+    files: ["map_CDD.png","map_CWD.png","map_DTR.png","map_FD.png","map_GSL.png","map_ID.png","map_PRCPTOT.png","map_R10mm.png","map_R20mm.png","map_RX1day.png","map_RX5day.png","map_SDII.png","map_SU.png","map_TNn.png","map_TNx.png","map_TR.png","map_TXn.png","map_TXx.png","ts_CDD.png","ts_CWD.png","ts_DTR.png","ts_FD.png","ts_GSL.png","ts_ID.png","ts_PRCPTOT.png","ts_R10mm.png","ts_R20mm.png","ts_RX1day.png","ts_RX5day.png","ts_SDII.png","ts_SU.png","ts_TNn.png","ts_TNx.png","ts_TR.png","ts_TXn.png","ts_TXx.png"]
+  },
+  {
+    id: "extremes_6h",
+    title: "Extremes (6-hourly)",
+    dir: "figs_extremes_6h",
+    script: "extremes_6h.py",
+    desc: "Precipitation intensity, return levels, temperature extremes, DTR, pressure extremes, CC scaling, and trends.",
+    files: ["01_precip_intensity_distribution.png","02_precip_annual_max_maps.png","03_precip_return_levels.png","04_ts_extreme_maps.png","05_ts_return_levels.png","06_dtr.png","07_ps_extremes_maps.png","08_ps_extremes_histogram.png","09_ps_outlier_investigation.png","10_cc_scaling.png","11_extreme_trends.png","12_percentile_exceedance_maps.png","13_r95p_distribution.png","14_summary_stats.png"]
+  },
+  {
+    id: "distributions_6h",
+    title: "Distributions (6-hourly)",
+    dir: "figs_distributions_6h",
+    script: "distributions_6h.py",
+    desc: "Temperature and precipitation PDFs, skewness/kurtosis maps, QQ plots, seasonal distributions, Gamma fits, and drizzle diagnostics.",
+    files: ["01_ts_raw_pdfs.png","02_t7_raw_pdfs.png","03_ts_regional_pdfs.png","04_t7_regional_pdfs.png","05_ts_vs_t7_pdfs.png","06_ts_qq_plots.png","07_ts_skewness_map.png","08_ts_kurtosis_map.png","09_t7_skewness_map.png","10_t7_kurtosis_map.png","11_ts_single_point_pdfs.png","12_ts_seasonal_pdfs.png","13_precip_exceedance.png","14_precip_regional_pdfs.png","15_precip_gamma_fits.png","16_precip_6h_vs_daily.png","17_drizzle_diagnostic.png","18_summary.png"]
+  },
+  {
+    id: "dynamics_6h",
+    title: "Dynamics (6-hourly)",
+    dir: "figs_dynamics_6h",
+    script: "dynamics_6h.py",
+    desc: "Storm tracks, eddy kinetic energy, and wind speed distributions.",
+    files: ["01_storm_tracks.png","02_storm_tracks_zonal.png","03_eke.png","04_storm_vs_eke.png","08_wind_speed_maps.png","09_wind_speed_distributions.png","10_summary.png"]
+  },
+  {
+    id: "progressive_pdfs",
+    title: "Progressive PDFs",
+    dir: "figs_progressive_pdfs",
+    script: "progressive_pdfs.py",
+    desc: "Evolution of probability distributions across simulation segments for temperature, pressure, precipitation, and wind.",
+    files: ["progressive_pdf_TS.png","progressive_pdf_T7.png","progressive_pdf_PS.png","progressive_pdf_precip.png","progressive_pdf_wind_speed.png","progressive_pdf_diff_TS.png","progressive_pdf_diff_T7.png","progressive_pdf_diff_PS.png","progressive_pdf_diff_precip.png","progressive_pdf_diff_wind_speed.png","progressive_pdf_TS_global.png","progressive_pdf_TS_diff.png","progressive_pdf_TS_arctic.png","progressive_pdf_TS_gmean.png"]
+  },
+  {
+    id: "sea_ice",
+    title: "Sea Ice",
+    dir: "figs_sea_ice",
+    script: "sea_ice_diagnostics.py",
+    desc: "Sea ice extent and volume timeseries, seasonal cycles, annual extremes, concentration maps, and variability.",
+    files: ["01_sie_timeseries.png","02_siv_timeseries.png","03_seasonal_cycle_sie_arctic.png","03_seasonal_cycle_sie_antarctic.png","04_seasonal_cycle_siv_arctic.png","04_seasonal_cycle_siv_antarctic.png","05_annual_extremes_sie.png","06_sic_maps_djf.png","06_sic_maps_jja.png","07_sie_variability.png"]
+  },
+  {
+    id: "wheeler_kiladis",
+    title: "Wheeler-Kiladis Spectra",
+    dir: "figs_wheeler_kiladis",
+    script: "wheeler_kiladis.py",
+    desc: "Space-time power spectra of tropical precipitation (symmetric and antisymmetric components).",
+    files: ["wheeler_kiladis_symmetric.png","wheeler_kiladis_antisymmetric.png"]
+  },
+  {
+    id: "standalone",
+    title: "Standalone / Publication",
+    dir: "figs_standalone",
+    scripts: ["plot_climate_drift.py", "plot_progressive_pdf_TS.py", "plot_ts_return_levels.py"],
+    desc: "Publication-ready standalone figures: climate drift, progressive PDFs, and return levels.",
+    files: ["01_climate_drift.png","00_progressive_pdf_TS_global_ridgeline.png","00_progressive_pdf_TS_arctic_ridgeline.png","00_progressive_pdf_TS_diff.png","00_progressive_pdf_TS_global_small_multiples.png","05a_ts_return_levels.png","05b_precip_return_levels_global.png","05c_precip_return_levels_regional.png","05_ts_return_levels.png"]
+  },
+  {
+    id: "ar_ice",
+    title: "Reference: Roberts Sea Ice",
+    dir: "figs_ar_ice",
+    script: null,
+    desc: "External reference figures from Roberts et al. for sea ice comparison.",
+    files: ["roberts_page-1.png","roberts_page-2.png"]
+  }
+];
+
+// ---- Rendering ----
+function renderNav(filter) {
+  const nav = document.getElementById('nav-list');
+  const q = (filter || '').toLowerCase();
+  nav.innerHTML = categories.map(cat => {
+    const matchCount = q
+      ? cat.files.filter(f => f.toLowerCase().includes(q) || cat.title.toLowerCase().includes(q)).length
+      : cat.files.length;
+    if (q && matchCount === 0 && !cat.title.toLowerCase().includes(q)) return '';
+    return `<div class="nav-item" data-cat="${cat.id}" onclick="navScrollTo('${cat.id}')">
+      <span>${cat.title}</span>
+      <span class="count">${q ? matchCount + '/' : ''}${cat.files.length}</span>
+    </div>`;
+  }).join('');
+}
+
+function renderContent(filter) {
+  const content = document.getElementById('content');
+  const q = (filter || '').toLowerCase();
+  content.innerHTML = categories.map(cat => {
+    const filteredFiles = q
+      ? cat.files.filter(f => f.toLowerCase().includes(q) || cat.title.toLowerCase().includes(q))
+      : cat.files;
+    if (q && filteredFiles.length === 0 && !cat.title.toLowerCase().includes(q)) return '';
+    const displayFiles = q && !cat.title.toLowerCase().includes(q) ? filteredFiles : cat.files;
+
+    const scriptBadges = cat.scripts
+      ? cat.scripts.map(s => `<span class="script-badge" onclick="event.stopPropagation();showCode('${s}')">${s}</span>`).join(' ')
+      : cat.script
+        ? `<span class="script-badge" onclick="event.stopPropagation();showCode('${cat.script}')">${cat.script}</span>`
+        : '<span class="script-badge" style="opacity:0.4">external</span>';
+
+    return `<section id="section-${cat.id}">
+      <div class="section-header">
+        <h2>${cat.title}</h2>
+        ${scriptBadges}
+      </div>
+      <p class="section-desc">${cat.desc}</p>
+      <div class="grid">
+        ${displayFiles.map(f => `
+          <div class="card" onclick="openLightbox('${cat.id}','${f}')">
+            <img src="${BASE}/${cat.dir}/${f}" alt="${f}" loading="lazy">
+            <div class="label">${f.replace('.png','')}</div>
+          </div>
+        `).join('')}
+      </div>
+    </section>`;
+  }).join('');
+}
+
+function navScrollTo(id) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+  document.querySelector(`.nav-item[data-cat="${id}"]`)?.classList.add('active');
+  document.getElementById('section-' + id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ---- Search ----
+document.getElementById('search').addEventListener('input', function() {
+  renderNav(this.value);
+  renderContent(this.value);
+});
+
+// ---- Lightbox ----
+let currentCat = null, currentIdx = 0;
+
+function openLightbox(catId, file) {
+  currentCat = categories.find(c => c.id === catId);
+  currentIdx = currentCat.files.indexOf(file);
+  updateLightbox();
+  document.getElementById('lightbox').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').classList.remove('open');
+  document.body.style.overflow = '';
+}
+function navigateLightbox(dir) {
+  if (!currentCat) return;
+  currentIdx = (currentIdx + dir + currentCat.files.length) % currentCat.files.length;
+  updateLightbox();
+}
+function updateLightbox() {
+  const f = currentCat.files[currentIdx];
+  document.getElementById('lb-img').src = `${BASE}/${currentCat.dir}/${f}`;
+  document.getElementById('lb-caption').textContent = `${currentCat.dir}/${f}  (${currentIdx+1}/${currentCat.files.length})`;
+}
+
+document.addEventListener('keydown', e => {
+  if (document.getElementById('code-modal').classList.contains('open')) {
+    if (e.key === 'Escape') closeCode();
+    return;
+  }
+  if (document.getElementById('lightbox').classList.contains('open')) {
+    if (e.key === 'Escape') closeLightbox();
+    else if (e.key === 'ArrowRight') navigateLightbox(1);
+    else if (e.key === 'ArrowLeft') navigateLightbox(-1);
+  }
+});
+
+// ---- Code viewer ----
+const codeCache = {};
+
+async function showCode(filename) {
+  document.getElementById('code-title').textContent = filename;
+  const modal = document.getElementById('code-modal');
+  const codeEl = document.getElementById('code-content');
+
+  function highlightCode(text) {
+    codeEl.textContent = text;
+    codeEl.className = 'language-python';
+    codeEl.removeAttribute('data-highlighted');
+    hljs.highlightElement(codeEl);
+  }
+
+  if (codeCache[filename]) {
+    highlightCode(codeCache[filename]);
+  } else {
+    codeEl.className = '';
+    codeEl.removeAttribute('data-highlighted');
+    codeEl.textContent = 'Loading...';
+    try {
+      const resp = await fetch(`${BASE}/${filename}`);
+      if (!resp.ok) throw new Error(resp.statusText);
+      const text = await resp.text();
+      codeCache[filename] = text;
+      highlightCode(text);
+    } catch (e) {
+      codeEl.className = '';
+      codeEl.removeAttribute('data-highlighted');
+      codeEl.textContent = `Failed to load ${filename}: ${e.message}\n\nNote: Code viewing requires serving this page via HTTP (e.g. python -m http.server).`;
+    }
+  }
+  modal.classList.add('open');
+}
+function closeCode() {
+  document.getElementById('code-modal').classList.remove('open');
+}
+
+// ---- Scroll spy ----
+function updateActiveNav() {
+  const sections = categories.map(c => document.getElementById('section-' + c.id)).filter(Boolean);
+  let activeId = categories[0]?.id;
+  for (const s of sections) {
+    if (s.getBoundingClientRect().top <= 100) activeId = s.id.replace('section-', '');
+  }
+  document.querySelectorAll('.nav-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.cat === activeId);
+  });
+}
+document.getElementById('main')?.parentElement?.addEventListener('scroll', updateActiveNav);
+window.addEventListener('scroll', updateActiveNav);
+
+// ---- Init ----
+renderNav();
+renderContent();
+updateActiveNav();
+</script>
+</body>
+</html>
