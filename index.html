@@ -22,18 +22,20 @@
          background: var(--bg); color: var(--text); min-height: 100vh;
          display: flex; flex-direction: column;
          transition: background 0.3s, color 0.3s; }
-  header { background: var(--header-bg); color: #fff; padding: 48px 32px 40px;
-           position: relative; z-index: 10; text-align: center; }
-  header h1 { font-size: 1.8em; font-weight: 700; letter-spacing: -0.02em; }
-  header p { margin-top: 8px; opacity: 0.7; font-size: 0.95em; }
-  .theme-toggle { position: absolute; top: 16px; right: 24px; z-index: 20;
-                  background: none; border: 2px solid rgba(255,255,255,0.3);
-                  color: #fff; padding: 6px 14px; border-radius: 20px;
-                  cursor: pointer; font-size: 0.85em; font-weight: 500;
-                  transition: all 0.2s; }
-  .theme-toggle:hover { border-color: #fff; background: rgba(255,255,255,0.1); }
-  main { max-width: 640px; margin: -32px auto 0; padding: 0 24px 40px; flex: 1;
-         width: 100%; position: relative; z-index: 1; }
+  header { background: var(--card); border-bottom: 1px solid var(--card-border);
+           padding: 24px 32px; display: flex; align-items: center;
+           justify-content: space-between; transition: background 0.3s; }
+  header .hdr-text { }
+  header h1 { font-size: 1.25em; font-weight: 700; letter-spacing: -0.02em;
+              color: var(--accent); }
+  header p { margin-top: 2px; font-size: 0.82em; color: var(--text-muted); }
+  .theme-toggle { background: none; border: 1px solid var(--card-border);
+                  color: var(--text-muted); padding: 5px 12px; border-radius: 6px;
+                  cursor: pointer; font-size: 0.8em; font-weight: 500;
+                  transition: all 0.2s; flex-shrink: 0; }
+  .theme-toggle:hover { border-color: var(--accent); color: var(--accent); }
+  main { max-width: 640px; margin: 32px auto 0; padding: 0 24px 40px; flex: 1;
+         width: 100%; }
   ul { list-style: none; }
   li { margin-bottom: 12px; }
   li a { display: block; background: var(--card); border: 1px solid var(--card-border);
@@ -72,9 +74,11 @@ document.addEventListener('DOMContentLoaded', updateToggleLabel);
 </head>
 <body>
 <header>
+  <div class="hdr-text">
+    <h1>FME Diagnostics</h1>
+    <p>Full Model Emulation &mdash; E3SM Online Output Verification</p>
+  </div>
   <button class="theme-toggle" onclick="toggleTheme()"></button>
-  <h1>FME Diagnostics</h1>
-  <p>Full Model Emulation &mdash; E3SM Online Output Verification</p>
 </header>
 <main>
   <ul>
