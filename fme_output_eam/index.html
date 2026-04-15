@@ -701,7 +701,7 @@ out_names:
 <p>Both cases run identical physics from the same ICs. FME diagnostics are output-only and do not modify model state. <strong>16 pass, 5 fail, 1 info</strong></p>
 <div class="tabs">
 <button class="tab active" onclick="showTab('GMEAN')">Global Means <span class="badge">12/15</span></button>
-<button class="tab" onclick="showTab('BFB')">BFB Identity <span class="badge">0/1</span></button>
+<button class="tab" onclick="showTab('BFB')">BFB Identity <span class="badge">0/7</span></button>
 <button class="tab" onclick="showTab('TOPO_FILL')">Topo Fill <span class="badge">0/1</span></button>
 <button class="tab" onclick="showTab('VCOARSEN')">Vcoarsen <span class="badge">4/4</span></button>
 <button class="tab" onclick="showTab('LINEARITY')">Linearity <span class="badge">0/1</span></button>
@@ -729,9 +729,15 @@ out_names:
 </tbody></table>
 </div>
 <div class="tab-content" id="tab_BFB" style="display:none">
-<h3>BFB Identity (shared fields match bit-for-bit) <span class="fail">(0/1)</span></h3>
+<h3>BFB Identity (shared fields match bit-for-bit) <span class="fail">(0/7)</span></h3>
 <table class="sortable"><thead><tr><th onclick="sortTable(this,0)">Field</th><th onclick="sortTable(this,1)">Status</th><th onclick="sortTable(this,2)">Detail</th></tr></thead><tbody>
 <tr><td>FSNTOA</td><td class="">SKIP</td><td style="font-family:monospace;font-size:0.85em">missing-fme</td></tr>
+<tr><td>FSUTOA</td><td class="">SKIP</td><td style="font-family:monospace;font-size:0.85em">missing-legacy</td></tr>
+<tr><td>FLNT</td><td class="">SKIP</td><td style="font-family:monospace;font-size:0.85em">missing-fme</td></tr>
+<tr><td>FLUS</td><td class="">SKIP</td><td style="font-family:monospace;font-size:0.85em">missing-legacy</td></tr>
+<tr><td>FSUS</td><td class="">SKIP</td><td style="font-family:monospace;font-size:0.85em">missing-legacy</td></tr>
+<tr><td>FSNS</td><td class="">SKIP</td><td style="font-family:monospace;font-size:0.85em">missing-fme</td></tr>
+<tr><td>FLNS</td><td class="">SKIP</td><td style="font-family:monospace;font-size:0.85em">missing-fme</td></tr>
 </tbody></table>
 </div>
 <div class="tab-content" id="tab_TOPO_FILL" style="display:none">
@@ -888,7 +894,7 @@ out_names:
 <dt>Run directory</dt><dd><code>/pscratch/sd/m/mahf708/e3sm_scratch/pm-cpu/SMS_P512.ne30pg2_r05_IcoswISC30E3r5.WCYCL1850NS.pm-cpu_gnu.allactive-fme_output.20260414_190547_gaaws4/run</code></dd>
 <dt>Legacy run directory</dt><dd><code>/pscratch/sd/m/mahf708/e3sm_scratch/pm-cpu/SMS_P512.ne30pg2_r05_IcoswISC30E3r5.WCYCL1850NS.pm-cpu_gnu.allactive-fme_legacy_output.20260414_190501_cxrnil/run</code></dd>
 <dt>Host</dt><dd><code>mahf708@nid004262</code></dd>
-<dt>Generated</dt><dd>2026-04-14 19:34:31</dd>
+<dt>Generated</dt><dd>2026-04-14 19:40:11</dd>
 </dl>
 <details><summary>user_nl_eam (FME)</summary>
 <pre class="yaml-block">! FME (Full Model Emulation) online output processing -- EAM
@@ -4017,6 +4023,6 @@ fincl1 =  'T','Q','U','V','PS','PHIS',
     </div>
     <footer>
       <strong>verify_eam.py</strong> &mdash; EAM FME Online Output Verification for E3SM
-      &mdash; Generated 2026-04-14 19:35:01
+      &mdash; Generated 2026-04-14 19:40:40
     </footer>
     </body></html>
