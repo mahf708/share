@@ -416,7 +416,7 @@
         <div class="subtitle">E3SM Atmosphere Model &mdash; Full Model Emulation Diagnostics</div>
       </div>
       <div class="hdr-right">
-        <span class="status-pill status-fail">6 issues in 2/2 components</span>
+        <span class="status-pill status-fail">6 issues in 1/2 components</span>
         <button class="theme-toggle" onclick="toggleTheme()"><span class="icon"></span> Theme</button>
       </div>
     </header>
@@ -443,14 +443,14 @@
     <div class="metric-detail">All ACE atmosphere variables found</div>
   </div>
   <div class="metric-card">
-    <div class="metric-value">0/2</div>
+    <div class="metric-value">1/2</div>
     <div class="metric-label">Checks Passed</div>
-    <div class="metric-detail">2 components with issues</div>
+    <div class="metric-detail">1 components with issues</div>
   </div>
   <div class="metric-card">
-    <div class="metric-value">1.18x</div>
+    <div class="metric-value">1.19x</div>
     <div class="metric-label">Storage Ratio</div>
-    <div class="metric-detail">FME 3.28 GB vs Legacy 2.77 GB</div>
+    <div class="metric-detail">FME 3.30 GB vs Legacy 2.78 GB</div>
   </div>
   <div class="metric-card">
     <div class="metric-value">N/A</div>
@@ -463,13 +463,13 @@
     <h2 id="Summary">Component Summary</h2>
     <table>
     <tr><th>Component</th><th>Status</th><th>Issues</th></tr>
-    <tr><td>EAM</td><td class="fail">FAIL</td><td>1</td></tr>
-<tr><td>Cross-Verify</td><td class="fail">FAIL</td><td>5</td></tr>
+    <tr><td>EAM</td><td class="pass">PASS</td><td>0</td></tr>
+<tr><td>Cross-Verify</td><td class="fail">FAIL</td><td>6</td></tr>
 
     </table>
 
-    <details><summary>Show all 6 issues</summary><table><tr><th>Component</th><th>Issue</th></tr><tr><td>EAM</td><td>h0 missing: FSNTOA</td></tr>
-<tr><td>Cross-Verify</td><td>GMEAN ICEFRAC: rel_diff = 0.09783</td></tr>
+    <details><summary>Show all 6 issues</summary><table><tr><th>Component</th><th>Issue</th></tr><tr><td>Cross-Verify</td><td>GMEAN ICEFRAC: rel_diff = 0.09783</td></tr>
+<tr><td>Cross-Verify</td><td>GMEAN FSUS: rel_diff = 0.0573</td></tr>
 <tr><td>Cross-Verify</td><td>GMEAN TAUX: rel_diff = 0.3888</td></tr>
 <tr><td>Cross-Verify</td><td>GMEAN TAUY: rel_diff = 0.02127</td></tr>
 <tr><td>Cross-Verify</td><td>TOPO_FILL: max fill mismatch 1.585%</td></tr>
@@ -649,6 +649,7 @@ out_names:
 <tr><td>EAM</td><td>h0/SHFLX</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
 <tr><td>EAM</td><td>h0/FLDS</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
 <tr><td>EAM</td><td>h0/FSDS</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
+<tr><td>EAM</td><td>h0/FSNTOA</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
 <tr><td>EAM</td><td>h0/FSUTOA</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
 <tr><td>EAM</td><td>h0/FLUT</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
 <tr><td>EAM</td><td>h0/SOLIN</td><td>259,200</td><td>259,200</td><td>0</td><td class="pass">0.0%</td></tr>
@@ -698,10 +699,9 @@ out_names:
     </details>
 
     <h2 id="Cross_Verify">Cross-Verification: FME vs Legacy</h2>
-<p>Both cases run identical physics from the same ICs. FME diagnostics are output-only and do not modify model state. <strong>16 pass, 5 fail, 1 info</strong></p>
+<p>Both cases run identical physics from the same ICs. FME diagnostics are output-only and do not modify model state. <strong>22 pass, 6 fail, 1 info</strong></p>
 <div class="tabs">
-<button class="tab active" onclick="showTab('GMEAN')">Global Means <span class="badge">12/15</span></button>
-<button class="tab" onclick="showTab('BFB')">BFB Identity <span class="badge">0/7</span></button>
+<button class="tab active" onclick="showTab('GMEAN')">Global Means <span class="badge">18/22</span></button>
 <button class="tab" onclick="showTab('TOPO_FILL')">Topo Fill <span class="badge">0/1</span></button>
 <button class="tab" onclick="showTab('VCOARSEN')">Vcoarsen <span class="badge">4/4</span></button>
 <button class="tab" onclick="showTab('LINEARITY')">Linearity <span class="badge">0/1</span></button>
@@ -709,7 +709,7 @@ out_names:
 <button class="tab" onclick="showTab('PLOTS')">Figures</button>
 </div>
 <div class="tab-content" id="tab_GMEAN">
-<h3>Area-Weighted Global-Mean Comparison (cos-lat weighted, &lt;2% tolerance) <span class="fail">(12/15)</span></h3>
+<h3>Area-Weighted Global-Mean Comparison (cos-lat weighted, &lt;2% tolerance) <span class="fail">(18/22)</span></h3>
 <table class="sortable"><thead><tr><th onclick="sortTable(this,0)">Field</th><th onclick="sortTable(this,1)">Status</th><th onclick="sortTable(this,2)">Detail</th></tr></thead><tbody>
 <tr><td>PS</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=98541.1, leg=98603.5, rel=6.33e-04</td></tr>
 <tr><td>TS</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=286.518, leg=286.626, rel=3.80e-04</td></tr>
@@ -718,26 +718,21 @@ out_names:
 <tr><td>OCNFRAC</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=0.642959, leg=0.649329, rel=9.81e-03</td></tr>
 <tr><td>ICEFRAC</td><td class="fail">DIFF</td><td style="font-family:monospace;font-size:0.85em">fme=0.0636271, leg=0.0579572, rel=9.78e-02</td></tr>
 <tr><td>SOLIN</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=351.805, leg=351.571, rel=6.68e-04</td></tr>
+<tr><td>FSNTOA</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=242.897, leg=243.609, rel=2.92e-03</td></tr>
+<tr><td>FSUTOA</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=108.909, leg=107.963, rel=8.77e-03</td></tr>
 <tr><td>FLUT</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=239.432, leg=239.31, rel=5.08e-04</td></tr>
+<tr><td>FLNT</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=239.233, leg=239.112, rel=5.07e-04</td></tr>
 <tr><td>FLDS</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=337.52, leg=337.632, rel=3.33e-04</td></tr>
+<tr><td>FLUS</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=390.619, leg=390.842, rel=5.70e-04</td></tr>
 <tr><td>FSDS</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=198.618, leg=197.502, rel=5.65e-03</td></tr>
+<tr><td>FSUS</td><td class="fail">DIFF</td><td style="font-family:monospace;font-size:0.85em">fme=35.7747, leg=33.836, rel=5.73e-02</td></tr>
+<tr><td>FSNS</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=162.843, leg=163.666, rel=5.03e-03</td></tr>
+<tr><td>FLNS</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=53.0993, leg=53.2096, rel=2.07e-03</td></tr>
 <tr><td>LHFLX</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=79.2211, leg=79.1538, rel=8.50e-04</td></tr>
 <tr><td>SHFLX</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=18.0094, leg=18.2849, rel=1.51e-02</td></tr>
 <tr><td>TAUX</td><td class="fail">DIFF</td><td style="font-family:monospace;font-size:0.85em">fme=-0.00428113, leg=-0.0070041, rel=3.89e-01</td></tr>
 <tr><td>TAUY</td><td class="fail">DIFF</td><td style="font-family:monospace;font-size:0.85em">fme=0.00833567, leg=0.00851686, rel=2.13e-02</td></tr>
 <tr><td>PRECT</td><td class="pass">PASS</td><td style="font-family:monospace;font-size:0.85em">fme=3.20248e-08, leg=3.23826e-08, rel=1.11e-02</td></tr>
-</tbody></table>
-</div>
-<div class="tab-content" id="tab_BFB" style="display:none">
-<h3>BFB Identity (shared fields match bit-for-bit) <span class="fail">(0/7)</span></h3>
-<table class="sortable"><thead><tr><th onclick="sortTable(this,0)">Field</th><th onclick="sortTable(this,1)">Status</th><th onclick="sortTable(this,2)">Detail</th></tr></thead><tbody>
-<tr><td>FSNTOA</td><td class="">SKIP</td><td style="font-family:monospace;font-size:0.85em">missing-fme</td></tr>
-<tr><td>FSUTOA</td><td class="">SKIP</td><td style="font-family:monospace;font-size:0.85em">missing-legacy</td></tr>
-<tr><td>FLNT</td><td class="">SKIP</td><td style="font-family:monospace;font-size:0.85em">missing-fme</td></tr>
-<tr><td>FLUS</td><td class="">SKIP</td><td style="font-family:monospace;font-size:0.85em">missing-legacy</td></tr>
-<tr><td>FSUS</td><td class="">SKIP</td><td style="font-family:monospace;font-size:0.85em">missing-legacy</td></tr>
-<tr><td>FSNS</td><td class="">SKIP</td><td style="font-family:monospace;font-size:0.85em">missing-fme</td></tr>
-<tr><td>FLNS</td><td class="">SKIP</td><td style="font-family:monospace;font-size:0.85em">missing-fme</td></tr>
 </tbody></table>
 </div>
 <div class="tab-content" id="tab_TOPO_FILL" style="display:none">
@@ -764,7 +759,7 @@ out_names:
 <div class="tab-content" id="tab_STORAGE" style="display:none">
 <h3>Storage Comparison <span class="fail">(0/1)</span></h3>
 <table class="sortable"><thead><tr><th onclick="sortTable(this,0)">Field</th><th onclick="sortTable(this,1)">Status</th><th onclick="sortTable(this,2)">Detail</th></tr></thead><tbody>
-<tr><td>total NC files</td><td class="">INFO</td><td style="font-family:monospace;font-size:0.85em">FME: 35 files / 3.28 GB, Legacy: 13 files / 2.77 GB, ratio: 1.18x</td></tr>
+<tr><td>total NC files</td><td class="">INFO</td><td style="font-family:monospace;font-size:0.85em">FME: 35 files / 3.30 GB, Legacy: 13 files / 2.78 GB, ratio: 1.19x</td></tr>
 </tbody></table>
 </div>
 <div class="tab-content" id="tab_PLOTS" style="display:none">
@@ -776,9 +771,16 @@ out_names:
 <div class="fig wide"><a href="fme_output/cross_verify/xv_native_vs_remap_ICEFRAC.png"><img src="fme_output/cross_verify/xv_native_vs_remap_ICEFRAC.png"/></a><span>xv_native_vs_remap_ICEFRAC.png</span></div>
 <div class="fig wide"><a href="fme_output/cross_verify/xv_native_vs_remap_LANDFRAC.png"><img src="fme_output/cross_verify/xv_native_vs_remap_LANDFRAC.png"/></a><span>xv_native_vs_remap_LANDFRAC.png</span></div>
 <div class="fig wide"><a href="fme_output/cross_verify/xv_native_vs_remap_FSDS.png"><img src="fme_output/cross_verify/xv_native_vs_remap_FSDS.png"/></a><span>xv_native_vs_remap_FSDS.png</span></div>
+<div class="fig wide"><a href="fme_output/cross_verify/xv_native_vs_remap_FSUS.png"><img src="fme_output/cross_verify/xv_native_vs_remap_FSUS.png"/></a><span>xv_native_vs_remap_FSUS.png</span></div>
+<div class="fig wide"><a href="fme_output/cross_verify/xv_native_vs_remap_FSNS.png"><img src="fme_output/cross_verify/xv_native_vs_remap_FSNS.png"/></a><span>xv_native_vs_remap_FSNS.png</span></div>
 <div class="fig wide"><a href="fme_output/cross_verify/xv_native_vs_remap_FLDS.png"><img src="fme_output/cross_verify/xv_native_vs_remap_FLDS.png"/></a><span>xv_native_vs_remap_FLDS.png</span></div>
+<div class="fig wide"><a href="fme_output/cross_verify/xv_native_vs_remap_FLUS.png"><img src="fme_output/cross_verify/xv_native_vs_remap_FLUS.png"/></a><span>xv_native_vs_remap_FLUS.png</span></div>
+<div class="fig wide"><a href="fme_output/cross_verify/xv_native_vs_remap_FLNS.png"><img src="fme_output/cross_verify/xv_native_vs_remap_FLNS.png"/></a><span>xv_native_vs_remap_FLNS.png</span></div>
 <div class="fig wide"><a href="fme_output/cross_verify/xv_native_vs_remap_SOLIN.png"><img src="fme_output/cross_verify/xv_native_vs_remap_SOLIN.png"/></a><span>xv_native_vs_remap_SOLIN.png</span></div>
+<div class="fig wide"><a href="fme_output/cross_verify/xv_native_vs_remap_FSNTOA.png"><img src="fme_output/cross_verify/xv_native_vs_remap_FSNTOA.png"/></a><span>xv_native_vs_remap_FSNTOA.png</span></div>
+<div class="fig wide"><a href="fme_output/cross_verify/xv_native_vs_remap_FSUTOA.png"><img src="fme_output/cross_verify/xv_native_vs_remap_FSUTOA.png"/></a><span>xv_native_vs_remap_FSUTOA.png</span></div>
 <div class="fig wide"><a href="fme_output/cross_verify/xv_native_vs_remap_FLUT.png"><img src="fme_output/cross_verify/xv_native_vs_remap_FLUT.png"/></a><span>xv_native_vs_remap_FLUT.png</span></div>
+<div class="fig wide"><a href="fme_output/cross_verify/xv_native_vs_remap_FLNT.png"><img src="fme_output/cross_verify/xv_native_vs_remap_FLNT.png"/></a><span>xv_native_vs_remap_FLNT.png</span></div>
 <div class="fig wide"><a href="fme_output/cross_verify/xv_native_vs_remap_LHFLX.png"><img src="fme_output/cross_verify/xv_native_vs_remap_LHFLX.png"/></a><span>xv_native_vs_remap_LHFLX.png</span></div>
 <div class="fig wide"><a href="fme_output/cross_verify/xv_native_vs_remap_SHFLX.png"><img src="fme_output/cross_verify/xv_native_vs_remap_SHFLX.png"/></a><span>xv_native_vs_remap_SHFLX.png</span></div>
 <div class="fig wide"><a href="fme_output/cross_verify/xv_native_vs_remap_TAUX.png"><img src="fme_output/cross_verify/xv_native_vs_remap_TAUX.png"/></a><span>xv_native_vs_remap_TAUX.png</span></div>
@@ -835,9 +837,16 @@ out_names:
 <div class="fig"><a href="fme_output/cross_verify/xv_native_vs_remap_ICEFRAC.png"><img src="fme_output/cross_verify/xv_native_vs_remap_ICEFRAC.png"/></a><span>xv_native_vs_remap_ICEFRAC.png</span></div>
 <div class="fig"><a href="fme_output/cross_verify/xv_native_vs_remap_LANDFRAC.png"><img src="fme_output/cross_verify/xv_native_vs_remap_LANDFRAC.png"/></a><span>xv_native_vs_remap_LANDFRAC.png</span></div>
 <div class="fig"><a href="fme_output/cross_verify/xv_native_vs_remap_FSDS.png"><img src="fme_output/cross_verify/xv_native_vs_remap_FSDS.png"/></a><span>xv_native_vs_remap_FSDS.png</span></div>
+<div class="fig"><a href="fme_output/cross_verify/xv_native_vs_remap_FSUS.png"><img src="fme_output/cross_verify/xv_native_vs_remap_FSUS.png"/></a><span>xv_native_vs_remap_FSUS.png</span></div>
+<div class="fig"><a href="fme_output/cross_verify/xv_native_vs_remap_FSNS.png"><img src="fme_output/cross_verify/xv_native_vs_remap_FSNS.png"/></a><span>xv_native_vs_remap_FSNS.png</span></div>
 <div class="fig"><a href="fme_output/cross_verify/xv_native_vs_remap_FLDS.png"><img src="fme_output/cross_verify/xv_native_vs_remap_FLDS.png"/></a><span>xv_native_vs_remap_FLDS.png</span></div>
+<div class="fig"><a href="fme_output/cross_verify/xv_native_vs_remap_FLUS.png"><img src="fme_output/cross_verify/xv_native_vs_remap_FLUS.png"/></a><span>xv_native_vs_remap_FLUS.png</span></div>
+<div class="fig"><a href="fme_output/cross_verify/xv_native_vs_remap_FLNS.png"><img src="fme_output/cross_verify/xv_native_vs_remap_FLNS.png"/></a><span>xv_native_vs_remap_FLNS.png</span></div>
 <div class="fig"><a href="fme_output/cross_verify/xv_native_vs_remap_SOLIN.png"><img src="fme_output/cross_verify/xv_native_vs_remap_SOLIN.png"/></a><span>xv_native_vs_remap_SOLIN.png</span></div>
+<div class="fig"><a href="fme_output/cross_verify/xv_native_vs_remap_FSNTOA.png"><img src="fme_output/cross_verify/xv_native_vs_remap_FSNTOA.png"/></a><span>xv_native_vs_remap_FSNTOA.png</span></div>
+<div class="fig"><a href="fme_output/cross_verify/xv_native_vs_remap_FSUTOA.png"><img src="fme_output/cross_verify/xv_native_vs_remap_FSUTOA.png"/></a><span>xv_native_vs_remap_FSUTOA.png</span></div>
 <div class="fig"><a href="fme_output/cross_verify/xv_native_vs_remap_FLUT.png"><img src="fme_output/cross_verify/xv_native_vs_remap_FLUT.png"/></a><span>xv_native_vs_remap_FLUT.png</span></div>
+<div class="fig"><a href="fme_output/cross_verify/xv_native_vs_remap_FLNT.png"><img src="fme_output/cross_verify/xv_native_vs_remap_FLNT.png"/></a><span>xv_native_vs_remap_FLNT.png</span></div>
 <div class="fig"><a href="fme_output/cross_verify/xv_native_vs_remap_LHFLX.png"><img src="fme_output/cross_verify/xv_native_vs_remap_LHFLX.png"/></a><span>xv_native_vs_remap_LHFLX.png</span></div>
 <div class="fig"><a href="fme_output/cross_verify/xv_native_vs_remap_SHFLX.png"><img src="fme_output/cross_verify/xv_native_vs_remap_SHFLX.png"/></a><span>xv_native_vs_remap_SHFLX.png</span></div>
 <div class="fig"><a href="fme_output/cross_verify/xv_native_vs_remap_TAUX.png"><img src="fme_output/cross_verify/xv_native_vs_remap_TAUX.png"/></a><span>xv_native_vs_remap_TAUX.png</span></div>
@@ -854,34 +863,34 @@ out_names:
     <table class="timing-table">
     <tr><td>*****</td><td>GLOBAL</td><td>STATISTICS</td><td>(</td><td>512</td><td>MPI</td><td>TASKS)</td><td>*****</td></tr>
 <tr><td>name</td><td>on</td><td>processes</td><td>threads</td><td>count</td><td>walltotal</td><td>wallmax</td><td>(proc</td><td>thrd</td><td>)</td><td>wallmin</td><td>(proc</td><td>thrd</td><td>)</td></tr>
-<tr><td>"CPL:INIT"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>3.886409e+04</td><td>75.992</td><td>(</td><td>352</td><td>0)</td><td>75.798</td><td>(</td><td>121</td><td>0)</td></tr>
-<tr><td>"CPL:cime_pre_init1"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.344374e+03</td><td>2.711</td><td>(</td><td>352</td><td>0)</td><td>2.518</td><td>(</td><td>0</td><td>0)</td></tr>
-<tr><td>"CPL:mpi_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.098857e+03</td><td>2.231</td><td>(</td><td>274</td><td>0)</td><td>2.038</td><td>(</td><td>64</td><td>0)</td></tr>
-<tr><td>"CPL:ESMF_Initialize"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>5.930281e-01</td><td>0.002</td><td>(</td><td>333</td><td>0)</td><td>0.000</td><td>(</td><td>414</td><td>0)</td></tr>
-<tr><td>"CPL:cime_pre_init2"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.104027e+02</td><td>0.219</td><td>(</td><td>24</td><td>0)</td><td>0.213</td><td>(</td><td>344</td><td>0)</td></tr>
-<tr><td>"CPL:seq_infodata_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.773421e+01</td><td>0.071</td><td>(</td><td>88</td><td>0)</td><td>0.007</td><td>(</td><td>394</td><td>0)</td></tr>
-<tr><td>"CPL:seq_timemgr_clockInit"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>3.149655e+00</td><td>0.010</td><td>(</td><td>82</td><td>0)</td><td>0.003</td><td>(</td><td>296</td><td>0)</td></tr>
-<tr><td>"CPL:cime_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>3.740865e+04</td><td>73.066</td><td>(</td><td>365</td><td>0)</td><td>73.062</td><td>(</td><td>150</td><td>0)</td></tr>
-<tr><td>"CPL:init_comps"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>3.164334e+04</td><td>61.808</td><td>(</td><td>79</td><td>0)</td><td>61.794</td><td>(</td><td>511</td><td>0)</td></tr>
-<tr><td>"CPL:comp_init_pre_all"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.509779e-01</td><td>0.002</td><td>(</td><td>53</td><td>0)</td><td>0.000</td><td>(</td><td>64</td><td>0)</td></tr>
-<tr><td>"comp_init_cc_iac"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>2.269009e+00</td><td>0.006</td><td>(</td><td>141</td><td>0)</td><td>0.003</td><td>(</td><td>1</td><td>0)</td></tr>
-<tr><td>"z_i:comp_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>6.144731e-01</td><td>0.002</td><td>(</td><td>340</td><td>0)</td><td>0.000</td><td>(</td><td>193</td><td>0)</td></tr>
-<tr><td>"CPL:comp_init_cc_atm"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.548974e+04</td><td>30.253</td><td>(</td><td>290</td><td>0)</td><td>30.253</td><td>(</td><td>11</td><td>0)</td></tr>
-<tr><td>"a_i:comp_init"</td><td>-</td><td>512</td><td>512</td><td>1.024000e+03</td><td>1.733815e+04</td><td>33.917</td><td>(</td><td>413</td><td>0)</td><td>33.756</td><td>(</td><td>265</td><td>0)</td></tr>
-<tr><td>"a_i:cam_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.538621e+04</td><td>30.053</td><td>(</td><td>156</td><td>0)</td><td>30.050</td><td>(</td><td>304</td><td>0)</td></tr>
-<tr><td>"a_i:cam_initfiles_open"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>5.719854e+01</td><td>0.114</td><td>(</td><td>156</td><td>0)</td><td>0.110</td><td>(</td><td>275</td><td>0)</td></tr>
-<tr><td>"a_i:cam_initial"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>2.909579e+03</td><td>5.683</td><td>(</td><td>0</td><td>0)</td><td>5.683</td><td>(</td><td>374</td><td>0)</td></tr>
-<tr><td>"a_i:dyn_init1"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>8.311118e+01</td><td>0.170</td><td>(</td><td>144</td><td>0)</td><td>0.147</td><td>(</td><td>329</td><td>0)</td></tr>
-<tr><td>"a_i:hycoef_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.188449e+01</td><td>0.026</td><td>(</td><td>241</td><td>0)</td><td>0.020</td><td>(</td><td>346</td><td>0)</td></tr>
-<tr><td>"a_i:prim_init1"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>4.607415e+01</td><td>0.095</td><td>(</td><td>23</td><td>0)</td><td>0.085</td><td>(</td><td>179</td><td>0)</td></tr>
-<tr><td>"a_i:repro_sum_finalsum"</td><td>-</td><td>512</td><td>512</td><td>4.505600e+04</td><td>1.548878e-02</td><td>0.000</td><td>(</td><td>127</td><td>0)</td><td>0.000</td><td>(</td><td>260</td><td>0)</td></tr>
-<tr><td>"a_i:compose_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>8.403939e+00</td><td>0.020</td><td>(</td><td>260</td><td>0)</td><td>0.013</td><td>(</td><td>8</td><td>0)</td></tr>
-<tr><td>"a_i:sl_init1"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>2.170584e+00</td><td>0.007</td><td>(</td><td>8</td><td>0)</td><td>0.001</td><td>(</td><td>432</td><td>0)</td></tr>
-<tr><td>"a_i:phys_grid_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.406630e+01</td><td>0.044</td><td>(</td><td>382</td><td>0)</td><td>0.019</td><td>(</td><td>139</td><td>0)</td></tr>
-<tr><td>"a_i:initial_conds"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>2.776080e+03</td><td>5.434</td><td>(</td><td>135</td><td>0)</td><td>5.412</td><td>(</td><td>423</td><td>0)</td></tr>
-<tr><td>"a_i:PIO:initdecomp"</td><td>-</td><td>512</td><td>512</td><td>3.072000e+03</td><td>3.218570e+01</td><td>0.066</td><td>(</td><td>173</td><td>0)</td><td>0.061</td><td>(</td><td>63</td><td>0)</td></tr>
-<tr><td>"a_i:PIO:PIOc_initdecomp"</td><td>-</td><td>512</td><td>512</td><td>3.072000e+03</td><td>3.210587e+01</td><td>0.066</td><td>(</td><td>173</td><td>0)</td><td>0.061</td><td>(</td><td>63</td><td>0)</td></tr>
-<tr><td>"a_i:dyn_init2"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>2.988010e+01</td><td>0.065</td><td>(</td><td>423</td><td>0)</td><td>0.052</td><td>(</td><td>215</td><td>0)</td></tr>
+<tr><td>"CPL:INIT"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>4.287277e+04</td><td>83.812</td><td>(</td><td>53</td><td>0)</td><td>83.684</td><td>(</td><td>181</td><td>0)</td></tr>
+<tr><td>"CPL:cime_pre_init1"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.092278e+03</td><td>2.209</td><td>(</td><td>4</td><td>0)</td><td>2.082</td><td>(</td><td>133</td><td>0)</td></tr>
+<tr><td>"CPL:mpi_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>8.555130e+02</td><td>1.746</td><td>(</td><td>29</td><td>0)</td><td>1.620</td><td>(</td><td>129</td><td>0)</td></tr>
+<tr><td>"CPL:ESMF_Initialize"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>4.800276e-01</td><td>0.002</td><td>(</td><td>1</td><td>0)</td><td>0.000</td><td>(</td><td>262</td><td>0)</td></tr>
+<tr><td>"CPL:cime_pre_init2"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.196932e+02</td><td>0.236</td><td>(</td><td>365</td><td>0)</td><td>0.231</td><td>(</td><td>455</td><td>0)</td></tr>
+<tr><td>"CPL:seq_infodata_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.972640e+01</td><td>0.076</td><td>(</td><td>90</td><td>0)</td><td>0.007</td><td>(</td><td>497</td><td>0)</td></tr>
+<tr><td>"CPL:seq_timemgr_clockInit"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>2.938952e+00</td><td>0.009</td><td>(</td><td>137</td><td>0)</td><td>0.002</td><td>(</td><td>423</td><td>0)</td></tr>
+<tr><td>"CPL:cime_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>4.166025e+04</td><td>81.370</td><td>(</td><td>333</td><td>0)</td><td>81.366</td><td>(</td><td>504</td><td>0)</td></tr>
+<tr><td>"CPL:init_comps"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>3.658103e+04</td><td>71.452</td><td>(</td><td>75</td><td>0)</td><td>71.435</td><td>(</td><td>511</td><td>0)</td></tr>
+<tr><td>"CPL:comp_init_pre_all"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.610926e-01</td><td>0.002</td><td>(</td><td>131</td><td>0)</td><td>0.000</td><td>(</td><td>257</td><td>0)</td></tr>
+<tr><td>"comp_init_cc_iac"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>2.998834e+00</td><td>0.008</td><td>(</td><td>65</td><td>0)</td><td>0.005</td><td>(</td><td>324</td><td>0)</td></tr>
+<tr><td>"z_i:comp_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>5.979864e-01</td><td>0.002</td><td>(</td><td>67</td><td>0)</td><td>0.000</td><td>(</td><td>431</td><td>0)</td></tr>
+<tr><td>"CPL:comp_init_cc_atm"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.906076e+04</td><td>37.228</td><td>(</td><td>109</td><td>0)</td><td>37.228</td><td>(</td><td>131</td><td>0)</td></tr>
+<tr><td>"a_i:comp_init"</td><td>-</td><td>512</td><td>512</td><td>1.024000e+03</td><td>2.068970e+04</td><td>40.475</td><td>(</td><td>253</td><td>0)</td><td>40.295</td><td>(</td><td>8</td><td>0)</td></tr>
+<tr><td>"a_i:cam_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.893940e+04</td><td>36.993</td><td>(</td><td>429</td><td>0)</td><td>36.990</td><td>(</td><td>6</td><td>0)</td></tr>
+<tr><td>"a_i:cam_initfiles_open"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>6.428639e+01</td><td>0.128</td><td>(</td><td>429</td><td>0)</td><td>0.124</td><td>(</td><td>73</td><td>0)</td></tr>
+<tr><td>"a_i:cam_initial"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>2.582245e+03</td><td>5.044</td><td>(</td><td>0</td><td>0)</td><td>5.043</td><td>(</td><td>199</td><td>0)</td></tr>
+<tr><td>"a_i:dyn_init1"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>9.110117e+01</td><td>0.184</td><td>(</td><td>210</td><td>0)</td><td>0.169</td><td>(</td><td>90</td><td>0)</td></tr>
+<tr><td>"a_i:hycoef_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.086762e+01</td><td>0.025</td><td>(</td><td>311</td><td>0)</td><td>0.017</td><td>(</td><td>485</td><td>0)</td></tr>
+<tr><td>"a_i:prim_init1"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>5.476922e+01</td><td>0.113</td><td>(</td><td>94</td><td>0)</td><td>0.102</td><td>(</td><td>220</td><td>0)</td></tr>
+<tr><td>"a_i:repro_sum_finalsum"</td><td>-</td><td>512</td><td>512</td><td>4.505600e+04</td><td>1.582523e-02</td><td>0.000</td><td>(</td><td>234</td><td>0)</td><td>0.000</td><td>(</td><td>129</td><td>0)</td></tr>
+<tr><td>"a_i:compose_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>8.473667e+00</td><td>0.020</td><td>(</td><td>67</td><td>0)</td><td>0.013</td><td>(</td><td>277</td><td>0)</td></tr>
+<tr><td>"a_i:sl_init1"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.940300e+00</td><td>0.008</td><td>(</td><td>28</td><td>0)</td><td>0.001</td><td>(</td><td>250</td><td>0)</td></tr>
+<tr><td>"a_i:phys_grid_init"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>1.372737e+01</td><td>0.037</td><td>(</td><td>90</td><td>0)</td><td>0.020</td><td>(</td><td>141</td><td>0)</td></tr>
+<tr><td>"a_i:initial_conds"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>2.436558e+03</td><td>4.772</td><td>(</td><td>163</td><td>0)</td><td>4.743</td><td>(</td><td>42</td><td>0)</td></tr>
+<tr><td>"a_i:PIO:initdecomp"</td><td>-</td><td>512</td><td>512</td><td>3.072000e+03</td><td>2.234698e+01</td><td>0.047</td><td>(</td><td>508</td><td>0)</td><td>0.042</td><td>(</td><td>124</td><td>0)</td></tr>
+<tr><td>"a_i:PIO:PIOc_initdecomp"</td><td>-</td><td>512</td><td>512</td><td>3.072000e+03</td><td>2.226938e+01</td><td>0.047</td><td>(</td><td>508</td><td>0)</td><td>0.042</td><td>(</td><td>124</td><td>0)</td></tr>
+<tr><td>"a_i:dyn_init2"</td><td>-</td><td>512</td><td>512</td><td>5.120000e+02</td><td>3.428114e+01</td><td>0.079</td><td>(</td><td>42</td><td>0)</td><td>0.059</td><td>(</td><td>191</td><td>0)</td></tr>
 
     </table>
     </div>
@@ -889,12 +898,12 @@ out_names:
 
     <h2 id="Reproducibility">Reproducibility</h2>
 <div class="repro-block"><dl>
-<dt>Command</dt><dd><code>/pscratch/sd/m/mahf708/e3sm-repo/mahf708-e3sm/cime_config/testmods_dirs/allactive/fme_output/verify_eam.py --rundir /pscratch/sd/m/mahf708/e3sm_scratch/pm-cpu/SMS_P512.ne30pg2_r05_IcoswISC30E3r5.WCYCL1850NS.pm-cpu_gnu.allactive-fme_output.20260414_190547_gaaws4/run --legacy-rundir /pscratch/sd/m/mahf708/e3sm_scratch/pm-cpu/SMS_P512.ne30pg2_r05_IcoswISC30E3r5.WCYCL1850NS.pm-cpu_gnu.allactive-fme_legacy_output.20260414_190501_cxrnil/run --outdir /pscratch/sd/m/mahf708/share/fme_output_eam -v</code></dd>
-<dt>Script</dt><dd><code>/pscratch/sd/m/mahf708/e3sm-repo/mahf708-e3sm/cime_config/testmods_dirs/allactive/fme_output/verify_eam.py</code> &mdash; git: <code>8e8c237f0c (dirty)</code></dd>
-<dt>Run directory</dt><dd><code>/pscratch/sd/m/mahf708/e3sm_scratch/pm-cpu/SMS_P512.ne30pg2_r05_IcoswISC30E3r5.WCYCL1850NS.pm-cpu_gnu.allactive-fme_output.20260414_190547_gaaws4/run</code></dd>
-<dt>Legacy run directory</dt><dd><code>/pscratch/sd/m/mahf708/e3sm_scratch/pm-cpu/SMS_P512.ne30pg2_r05_IcoswISC30E3r5.WCYCL1850NS.pm-cpu_gnu.allactive-fme_legacy_output.20260414_190501_cxrnil/run</code></dd>
-<dt>Host</dt><dd><code>mahf708@nid004262</code></dd>
-<dt>Generated</dt><dd>2026-04-14 19:40:11</dd>
+<dt>Command</dt><dd><code>/pscratch/sd/m/mahf708/e3sm-repo/mahf708-e3sm/cime_config/testmods_dirs/allactive/fme_output/verify_eam.py --rundir /pscratch/sd/m/mahf708/e3sm_scratch/pm-cpu/SMS_P512.ne30pg2_r05_IcoswISC30E3r5.WCYCL1850NS.pm-cpu_gnu.allactive-fme_output.20260414_194815_f6occt/run --legacy-rundir /pscratch/sd/m/mahf708/e3sm_scratch/pm-cpu/SMS_P512.ne30pg2_r05_IcoswISC30E3r5.WCYCL1850NS.pm-cpu_gnu.allactive-fme_legacy_output.20260414_194820_01p0cr/run --outdir /pscratch/sd/m/mahf708/share/fme_output_eam -v</code></dd>
+<dt>Script</dt><dd><code>/pscratch/sd/m/mahf708/e3sm-repo/mahf708-e3sm/cime_config/testmods_dirs/allactive/fme_output/verify_eam.py</code> &mdash; git: <code>1ecfbf15b7</code></dd>
+<dt>Run directory</dt><dd><code>/pscratch/sd/m/mahf708/e3sm_scratch/pm-cpu/SMS_P512.ne30pg2_r05_IcoswISC30E3r5.WCYCL1850NS.pm-cpu_gnu.allactive-fme_output.20260414_194815_f6occt/run</code></dd>
+<dt>Legacy run directory</dt><dd><code>/pscratch/sd/m/mahf708/e3sm_scratch/pm-cpu/SMS_P512.ne30pg2_r05_IcoswISC30E3r5.WCYCL1850NS.pm-cpu_gnu.allactive-fme_legacy_output.20260414_194820_01p0cr/run</code></dd>
+<dt>Host</dt><dd><code>mahf708@login20</code></dd>
+<dt>Generated</dt><dd>2026-04-14 20:07:17</dd>
 </dl>
 <details><summary>user_nl_eam (FME)</summary>
 <pre class="yaml-block">! FME (Full Model Emulation) online output processing -- EAM
@@ -933,7 +942,8 @@ fincl1 = 'SOLIN:A', 'PHIS',
           'STW_0', 'STW_1','STW_2','STW_3','STW_4','STW_5','STW_6','STW_7',
           'U_0','U_1','U_2','U_3','U_4','U_5','U_6','U_7',
           'V_0','V_1','V_2','V_3','V_4','V_5','V_6','V_7',
-          'FLUT:A', 'FSUTOA:A', 'FLDS:A', 'FLUS:A', 'FSDS:A', 'FSUS:A',
+          'FLUT:A', 'FLNT:A', 'FSNTOA:A', 'FSUTOA:A',
+          'FLDS:A', 'FLUS:A', 'FSDS:A', 'FSUS:A', 'FSNS:A', 'FLNS:A',
           'LHFLX:A','SHFLX:A',
           'TAUX:A', 'TAUY:A',
           'PRECT:A',
@@ -956,7 +966,9 @@ fincl1 =  'T','Q','U','V','PS','PHIS',
           'TEFIX','TS','QREFHT','U10','TREFHT',
           'PSL','LANDFRAC','OCNFRAC','ICEFRAC',
           'FSDS:A','FLDS:A','FSNS:A','FLNS:A','SOLIN:A',
-          'FSNTOA:A','FLUT:A','FLNT:A','LHFLX:A','QFLX:A',
+          'FSNTOA:A','FSUTOA:A','FLUT:A','FLNT:A',
+          'FSUS:A','FLUS:A',
+          'LHFLX:A','QFLX:A',
           'SHFLX:A','PRECT:A','PRECC:A','PRECSL:A','PRECSC:A','TAUX:A','TAUY:A'
 
 </pre>
@@ -4023,6 +4035,6 @@ fincl1 =  'T','Q','U','V','PS','PHIS',
     </div>
     <footer>
       <strong>verify_eam.py</strong> &mdash; EAM FME Online Output Verification for E3SM
-      &mdash; Generated 2026-04-14 19:40:40
+      &mdash; Generated 2026-04-14 20:07:56
     </footer>
     </body></html>
