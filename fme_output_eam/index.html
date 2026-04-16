@@ -416,7 +416,7 @@
         <div class="subtitle">E3SM Atmosphere Model &mdash; Full Model Emulation Diagnostics</div>
       </div>
       <div class="hdr-right">
-        <span class="status-pill status-fail">6 issues in 1/2 components</span>
+        <span class="status-pill status-fail">6 issues in 1/3 components</span>
         <button class="theme-toggle" onclick="toggleTheme()"><span class="icon"></span> Theme</button>
       </div>
     </header>
@@ -443,7 +443,7 @@
     <div class="metric-detail">All ACE atmosphere variables found</div>
   </div>
   <div class="metric-card">
-    <div class="metric-value">1/2</div>
+    <div class="metric-value">2/3</div>
     <div class="metric-label">Checks Passed</div>
     <div class="metric-detail">1 components with issues</div>
   </div>
@@ -464,6 +464,7 @@
     <table>
     <tr><th>Component</th><th>Status</th><th>Issues</th></tr>
     <tr><td>EAM</td><td class="pass">PASS</td><td>0</td></tr>
+<tr><td>Training Readiness</td><td class="pass">PASS</td><td>0</td></tr>
 <tr><td>Cross-Verify</td><td class="fail">FAIL</td><td>6</td></tr>
 
     </table>
@@ -964,11 +965,11 @@ out_names:
     <h2 id="Reproducibility">Reproducibility</h2>
 <div class="repro-block"><dl>
 <dt>Command</dt><dd><code>/pscratch/sd/m/mahf708/e3sm-repo/mahf708-e3sm/cime_config/testmods_dirs/allactive/fme_output/verify_eam.py --rundir /pscratch/sd/m/mahf708/e3sm_scratch/pm-cpu/SMS_P512.ne30pg2_r05_IcoswISC30E3r5.WCYCL1850.pm-cpu_gnu.allactive-fme_output.20260415_184927_xh6nt1/run --legacy-rundir /pscratch/sd/m/mahf708/e3sm_scratch/pm-cpu/SMS_P512.ne30pg2_r05_IcoswISC30E3r5.WCYCL1850.pm-cpu_gnu.allactive-fme_legacy_output.20260415_184918_5sgv84/run --outdir /pscratch/sd/m/mahf708/share/fme_output_eam -v</code></dd>
-<dt>Script</dt><dd><code>/pscratch/sd/m/mahf708/e3sm-repo/mahf708-e3sm/cime_config/testmods_dirs/allactive/fme_output/verify_eam.py</code> &mdash; git: <code>192fe69887</code></dd>
+<dt>Script</dt><dd><code>/pscratch/sd/m/mahf708/e3sm-repo/mahf708-e3sm/cime_config/testmods_dirs/allactive/fme_output/verify_eam.py</code> &mdash; git: <code>192fe69887 (dirty)</code></dd>
 <dt>Run directory</dt><dd><code>/pscratch/sd/m/mahf708/e3sm_scratch/pm-cpu/SMS_P512.ne30pg2_r05_IcoswISC30E3r5.WCYCL1850.pm-cpu_gnu.allactive-fme_output.20260415_184927_xh6nt1/run</code></dd>
 <dt>Legacy run directory</dt><dd><code>/pscratch/sd/m/mahf708/e3sm_scratch/pm-cpu/SMS_P512.ne30pg2_r05_IcoswISC30E3r5.WCYCL1850.pm-cpu_gnu.allactive-fme_legacy_output.20260415_184918_5sgv84/run</code></dd>
 <dt>Host</dt><dd><code>mahf708@nid004160</code></dd>
-<dt>Generated</dt><dd>2026-04-15 19:55:53</dd>
+<dt>Generated</dt><dd>2026-04-15 20:24:56</dd>
 </dl>
 <details><summary>user_nl_eam (FME)</summary>
 <pre class="yaml-block">! FME (Full Model Emulation) online output processing -- EAM
@@ -1042,7 +1043,7 @@ fincl1 =  'T','Q','U','V','PS','PHIS',
 
 </pre>
 </details>
-<details><summary>verify_eam.py (3098 lines)</summary>
+<details><summary>verify_eam.py (3383 lines)</summary>
 <pre class="src-block"><span id="L1" class="src-line"><span class="src-ln">   1</span>  #!/usr/bin/env python3</span>
 <span id="L2" class="src-line"><span class="src-ln">   2</span>  &quot;&quot;&quot;</span>
 <span id="L3" class="src-line"><span class="src-ln">   3</span>  Verify EAM FME online output (vcoarsen, derived fields) and cross-verify</span>
@@ -4022,131 +4023,416 @@ fincl1 =  'T','Q','U','V','PS','PHIS',
 <span id="L2977" class="src-line"><span class="src-ln">2977</span>  </span>
 <span id="L2978" class="src-line"><span class="src-ln">2978</span>  </span>
 <span id="L2979" class="src-line"><span class="src-ln">2979</span>  # -----------------------------------------------------------------------------</span>
-<span id="L2980" class="src-line"><span class="src-ln">2980</span>  # Main</span>
+<span id="L2980" class="src-line"><span class="src-ln">2980</span>  # ACE Training Readiness Certification</span>
 <span id="L2981" class="src-line"><span class="src-ln">2981</span>  # -----------------------------------------------------------------------------</span>
 <span id="L2982" class="src-line"><span class="src-ln">2982</span>  </span>
-<span id="L2983" class="src-line"><span class="src-ln">2983</span>  def main():</span>
-<span id="L2984" class="src-line"><span class="src-ln">2984</span>      parser = argparse.ArgumentParser(</span>
-<span id="L2985" class="src-line"><span class="src-ln">2985</span>          description=&quot;Verify EAM FME output (vcoarsen, derived fields) and &quot;</span>
-<span id="L2986" class="src-line"><span class="src-ln">2986</span>                      &quot;produce diagnostic figures with optional cross-verification.&quot;)</span>
-<span id="L2987" class="src-line"><span class="src-ln">2987</span>      parser.add_argument(&quot;--rundir&quot;, required=True,</span>
-<span id="L2988" class="src-line"><span class="src-ln">2988</span>                          help=&quot;CIME RUNDIR for the FME case (fme_output testmod)&quot;)</span>
-<span id="L2989" class="src-line"><span class="src-ln">2989</span>      parser.add_argument(&quot;--outdir&quot;, required=True,</span>
-<span id="L2990" class="src-line"><span class="src-ln">2990</span>                          help=&quot;Output directory for figures and HTML index&quot;)</span>
-<span id="L2991" class="src-line"><span class="src-ln">2991</span>      parser.add_argument(&quot;--verbose&quot;, &quot;-v&quot;, action=&quot;store_true&quot;)</span>
-<span id="L2992" class="src-line"><span class="src-ln">2992</span>      parser.add_argument(&quot;--legacy-rundir&quot;,</span>
-<span id="L2993" class="src-line"><span class="src-ln">2993</span>                          help=&quot;CIME RUNDIR for the legacy case (fme_legacy_output testmod) &quot;</span>
-<span id="L2994" class="src-line"><span class="src-ln">2994</span>                               &quot;for cross-verification&quot;)</span>
-<span id="L2995" class="src-line"><span class="src-ln">2995</span>      args = parser.parse_args()</span>
-<span id="L2996" class="src-line"><span class="src-ln">2996</span>  </span>
-<span id="L2997" class="src-line"><span class="src-ln">2997</span>      if not os.path.isdir(args.rundir):</span>
-<span id="L2998" class="src-line"><span class="src-ln">2998</span>          sys.exit(f&quot;ERROR: rundir not found: {args.rundir}&quot;)</span>
-<span id="L2999" class="src-line"><span class="src-ln">2999</span>  </span>
-<span id="L3000" class="src-line"><span class="src-ln">3000</span>      os.makedirs(args.outdir, exist_ok=True)</span>
-<span id="L3001" class="src-line"><span class="src-ln">3001</span>      print(f&quot;EAM FME Verification  |  rundir: {args.rundir}&quot;)</span>
-<span id="L3002" class="src-line"><span class="src-ln">3002</span>      if args.legacy_rundir:</span>
-<span id="L3003" class="src-line"><span class="src-ln">3003</span>          print(f&quot;Legacy RUNDIR         :  {args.legacy_rundir}&quot;)</span>
-<span id="L3004" class="src-line"><span class="src-ln">3004</span>      print(f&quot;Output directory      :  {args.outdir}&quot;)</span>
-<span id="L3005" class="src-line"><span class="src-ln">3005</span>      print(&quot;=&quot; * 70)</span>
-<span id="L3006" class="src-line"><span class="src-ln">3006</span>  </span>
-<span id="L3007" class="src-line"><span class="src-ln">3007</span>      if not HAS_MPL:</span>
-<span id="L3008" class="src-line"><span class="src-ln">3008</span>          print(&quot;WARNING: matplotlib not available -- no figures will be produced&quot;)</span>
-<span id="L3009" class="src-line"><span class="src-ln">3009</span>      if not HAS_CARTOPY:</span>
-<span id="L3010" class="src-line"><span class="src-ln">3010</span>          print(&quot;WARNING: cartopy not available -- falling back to scatter maps&quot;)</span>
-<span id="L3011" class="src-line"><span class="src-ln">3011</span>      if not (HAS_XR or HAS_NC4):</span>
-<span id="L3012" class="src-line"><span class="src-ln">3012</span>          sys.exit(&quot;ERROR: need xarray or netCDF4&quot;)</span>
-<span id="L3013" class="src-line"><span class="src-ln">3013</span>  </span>
-<span id="L3014" class="src-line"><span class="src-ln">3014</span>      # File inventory</span>
-<span id="L3015" class="src-line"><span class="src-ln">3015</span>      file_inventory_data = collect_file_inventory(args.rundir)</span>
-<span id="L3016" class="src-line"><span class="src-ln">3016</span>  </span>
-<span id="L3017" class="src-line"><span class="src-ln">3017</span>      all_issues = {}</span>
-<span id="L3018" class="src-line"><span class="src-ln">3018</span>      all_plots_by_comp = {}</span>
-<span id="L3019" class="src-line"><span class="src-ln">3019</span>      all_fill_reports = {}</span>
-<span id="L3020" class="src-line"><span class="src-ln">3020</span>  </span>
-<span id="L3021" class="src-line"><span class="src-ln">3021</span>      # All figures go under fme_output/ subdir so fme_output.html can reference them</span>
-<span id="L3022" class="src-line"><span class="src-ln">3022</span>      fig_root = os.path.join(args.outdir, &quot;fme_output&quot;)</span>
-<span id="L3023" class="src-line"><span class="src-ln">3023</span>      os.makedirs(fig_root, exist_ok=True)</span>
-<span id="L3024" class="src-line"><span class="src-ln">3024</span>  </span>
-<span id="L3025" class="src-line"><span class="src-ln">3025</span>      def run_check(name, func, subdir, *a):</span>
-<span id="L3026" class="src-line"><span class="src-ln">3026</span>          comp_outdir = os.path.join(fig_root, subdir)</span>
-<span id="L3027" class="src-line"><span class="src-ln">3027</span>          os.makedirs(comp_outdir, exist_ok=True)</span>
-<span id="L3028" class="src-line"><span class="src-ln">3028</span>          result = func(*a[:1], comp_outdir, *a[1:])</span>
-<span id="L3029" class="src-line"><span class="src-ln">3029</span>          comp_issues, plots, fill_reports = result</span>
-<span id="L3030" class="src-line"><span class="src-ln">3030</span>          all_issues[name] = comp_issues</span>
-<span id="L3031" class="src-line"><span class="src-ln">3031</span>          all_plots_by_comp[name] = plots</span>
-<span id="L3032" class="src-line"><span class="src-ln">3032</span>          all_fill_reports[name] = fill_reports</span>
-<span id="L3033" class="src-line"><span class="src-ln">3033</span>  </span>
-<span id="L3034" class="src-line"><span class="src-ln">3034</span>      run_check(&quot;EAM&quot;, check_eam, &quot;eam&quot;,</span>
-<span id="L3035" class="src-line"><span class="src-ln">3035</span>                args.rundir, args.verbose)</span>
-<span id="L3036" class="src-line"><span class="src-ln">3036</span>  </span>
-<span id="L3037" class="src-line"><span class="src-ln">3037</span>      # EAM comparison figures (multi-panel layer views, zonal means)</span>
-<span id="L3038" class="src-line"><span class="src-ln">3038</span>      generate_comparison_figures(args.rundir, fig_root, all_plots_by_comp)</span>
-<span id="L3039" class="src-line"><span class="src-ln">3039</span>  </span>
-<span id="L3040" class="src-line"><span class="src-ln">3040</span>      # Timing summary</span>
-<span id="L3041" class="src-line"><span class="src-ln">3041</span>      timing_summary = read_timing_summary(args.rundir)</span>
-<span id="L3042" class="src-line"><span class="src-ln">3042</span>      if timing_summary:</span>
-<span id="L3043" class="src-line"><span class="src-ln">3043</span>          print(&quot;\n=== Performance Timing ===&quot;)</span>
-<span id="L3044" class="src-line"><span class="src-ln">3044</span>          for line in timing_summary[:10]:</span>
-<span id="L3045" class="src-line"><span class="src-ln">3045</span>              print(f&quot;  {line}&quot;)</span>
-<span id="L3046" class="src-line"><span class="src-ln">3046</span>          if len(timing_summary) &gt; 10:</span>
-<span id="L3047" class="src-line"><span class="src-ln">3047</span>              print(f&quot;  ... ({len(timing_summary) - 10} more lines in HTML report)&quot;)</span>
-<span id="L3048" class="src-line"><span class="src-ln">3048</span>  </span>
-<span id="L3049" class="src-line"><span class="src-ln">3049</span>      # ACE variable coverage</span>
-<span id="L3050" class="src-line"><span class="src-ln">3050</span>      print(&quot;\n=== ACE Variable Coverage ===&quot;)</span>
-<span id="L3051" class="src-line"><span class="src-ln">3051</span>      coverage = check_variable_coverage(args.rundir)</span>
-<span id="L3052" class="src-line"><span class="src-ln">3052</span>      if coverage:</span>
-<span id="L3053" class="src-line"><span class="src-ln">3053</span>          n_found = sum(1 for _, _, _, f in coverage if f)</span>
-<span id="L3054" class="src-line"><span class="src-ln">3054</span>          n_missing = len(coverage) - n_found</span>
-<span id="L3055" class="src-line"><span class="src-ln">3055</span>          print(f&quot;  {n_found}/{len(coverage)} ACE variables found in output&quot;)</span>
-<span id="L3056" class="src-line"><span class="src-ln">3056</span>          if n_missing:</span>
-<span id="L3057" class="src-line"><span class="src-ln">3057</span>              for ace_name, eam_name, _, found in coverage:</span>
-<span id="L3058" class="src-line"><span class="src-ln">3058</span>                  if not found:</span>
-<span id="L3059" class="src-line"><span class="src-ln">3059</span>                      print(f&quot;  MISSING: {ace_name} (EAM: {eam_name})&quot;)</span>
-<span id="L3060" class="src-line"><span class="src-ln">3060</span>  </span>
-<span id="L3061" class="src-line"><span class="src-ln">3061</span>      # Reproducibility info</span>
-<span id="L3062" class="src-line"><span class="src-ln">3062</span>      repro_info = collect_repro_info(args)</span>
-<span id="L3063" class="src-line"><span class="src-ln">3063</span>  </span>
-<span id="L3064" class="src-line"><span class="src-ln">3064</span>      # Cross-verification against legacy testmod output</span>
-<span id="L3065" class="src-line"><span class="src-ln">3065</span>      xv_html = &quot;&quot;</span>
-<span id="L3066" class="src-line"><span class="src-ln">3066</span>      xv_results = None</span>
-<span id="L3067" class="src-line"><span class="src-ln">3067</span>      if args.legacy_rundir:</span>
-<span id="L3068" class="src-line"><span class="src-ln">3068</span>          if not os.path.isdir(args.legacy_rundir):</span>
-<span id="L3069" class="src-line"><span class="src-ln">3069</span>              print(f&quot;WARNING: legacy-rundir not found: {args.legacy_rundir}&quot;)</span>
-<span id="L3070" class="src-line"><span class="src-ln">3070</span>          else:</span>
-<span id="L3071" class="src-line"><span class="src-ln">3071</span>              xv_issues, xv_results, xv_plots = cross_verify(</span>
-<span id="L3072" class="src-line"><span class="src-ln">3072</span>                  args.rundir, args.legacy_rundir, args.outdir, args.verbose)</span>
-<span id="L3073" class="src-line"><span class="src-ln">3073</span>              all_issues[&quot;Cross-Verify&quot;] = xv_issues</span>
-<span id="L3074" class="src-line"><span class="src-ln">3074</span>              if xv_plots:</span>
-<span id="L3075" class="src-line"><span class="src-ln">3075</span>                  all_plots_by_comp[&quot;Cross-Verify&quot;] = xv_plots</span>
-<span id="L3076" class="src-line"><span class="src-ln">3076</span>              xv_html = write_cross_verify_html(args.outdir, xv_results, xv_plots)</span>
-<span id="L3077" class="src-line"><span class="src-ln">3077</span>  </span>
-<span id="L3078" class="src-line"><span class="src-ln">3078</span>      # Build executive summary</span>
-<span id="L3079" class="src-line"><span class="src-ln">3079</span>      exec_summary = build_executive_summary(all_issues, coverage,</span>
-<span id="L3080" class="src-line"><span class="src-ln">3080</span>                                             xv_results=xv_results)</span>
-<span id="L3081" class="src-line"><span class="src-ln">3081</span>  </span>
-<span id="L3082" class="src-line"><span class="src-ln">3082</span>      write_html_index(args.outdir, all_plots_by_comp, all_issues,</span>
-<span id="L3083" class="src-line"><span class="src-ln">3083</span>                       file_inventory_data, all_fill_reports,</span>
-<span id="L3084" class="src-line"><span class="src-ln">3084</span>                       timing_summary=timing_summary,</span>
-<span id="L3085" class="src-line"><span class="src-ln">3085</span>                       extra_html=xv_html,</span>
-<span id="L3086" class="src-line"><span class="src-ln">3086</span>                       coverage=coverage,</span>
-<span id="L3087" class="src-line"><span class="src-ln">3087</span>                       repro_info=repro_info,</span>
-<span id="L3088" class="src-line"><span class="src-ln">3088</span>                       exec_summary=exec_summary)</span>
-<span id="L3089" class="src-line"><span class="src-ln">3089</span>  </span>
-<span id="L3090" class="src-line"><span class="src-ln">3090</span>      n_total = sum(len(v) for v in all_issues.values())</span>
-<span id="L3091" class="src-line"><span class="src-ln">3091</span>      print(&quot;\n&quot; + &quot;=&quot; * 70)</span>
-<span id="L3092" class="src-line"><span class="src-ln">3092</span>      print(f&quot;RESULT: {&#x27;ALL CHECKS PASSED&#x27; if n_total == 0 else f&#x27;{n_total} ISSUES FOUND&#x27;}&quot;)</span>
-<span id="L3093" class="src-line"><span class="src-ln">3093</span>      sys.exit(0 if n_total == 0 else 1)</span>
-<span id="L3094" class="src-line"><span class="src-ln">3094</span>  </span>
-<span id="L3095" class="src-line"><span class="src-ln">3095</span>  </span>
-<span id="L3096" class="src-line"><span class="src-ln">3096</span>  if __name__ == &quot;__main__&quot;:</span>
-<span id="L3097" class="src-line"><span class="src-ln">3097</span>      main()</span>
-<span id="L3098" class="src-line"><span class="src-ln">3098</span>  </span></pre>
+<span id="L2983" class="src-line"><span class="src-ln">2983</span>  def check_training_readiness(rundir, outdir, verbose):</span>
+<span id="L2984" class="src-line"><span class="src-ln">2984</span>      &quot;&quot;&quot;Certify EAM remapped output for ACE training ingestion.</span>
+<span id="L2985" class="src-line"><span class="src-ln">2985</span>  </span>
+<span id="L2986" class="src-line"><span class="src-ln">2986</span>      Validates the h0 lat-lon files that ACE would directly consume.</span>
+<span id="L2987" class="src-line"><span class="src-ln">2987</span>      Returns (issues, plots, fill_reports) for run_check() compatibility.</span>
+<span id="L2988" class="src-line"><span class="src-ln">2988</span>  </span>
+<span id="L2989" class="src-line"><span class="src-ln">2989</span>      Checks:</span>
+<span id="L2990" class="src-line"><span class="src-ln">2990</span>        1. All ACE-required EAM variables present</span>
+<span id="L2991" class="src-line"><span class="src-ln">2991</span>        2. Grid coordinates match shifted Gaussian lat-lon spec</span>
+<span id="L2992" class="src-line"><span class="src-ln">2992</span>        3. Temporal completeness: monotonic time axis, no gaps</span>
+<span id="L2993" class="src-line"><span class="src-ln">2993</span>        4. Zero NaN/fill contamination across all timesteps</span>
+<span id="L2994" class="src-line"><span class="src-ln">2994</span>        5. Physical range bounds per variable (all timesteps)</span>
+<span id="L2995" class="src-line"><span class="src-ln">2995</span>        6. Radiation budget closure on the output grid</span>
+<span id="L2996" class="src-line"><span class="src-ln">2996</span>        7. Vcoarsen layer completeness and consistency</span>
+<span id="L2997" class="src-line"><span class="src-ln">2997</span>      &quot;&quot;&quot;</span>
+<span id="L2998" class="src-line"><span class="src-ln">2998</span>      print(&quot;\n=== ACE Training Readiness Certification (EAM) ===&quot;)</span>
+<span id="L2999" class="src-line"><span class="src-ln">2999</span>      issues = []</span>
+<span id="L3000" class="src-line"><span class="src-ln">3000</span>      plots = []</span>
+<span id="L3001" class="src-line"><span class="src-ln">3001</span>      fill_reports = []</span>
+<span id="L3002" class="src-line"><span class="src-ln">3002</span>      fill_thresh = 1e10</span>
+<span id="L3003" class="src-line"><span class="src-ln">3003</span>  </span>
+<span id="L3004" class="src-line"><span class="src-ln">3004</span>      # -- Collect h0 files --</span>
+<span id="L3005" class="src-line"><span class="src-ln">3005</span>      h0_files = find_files(rundir, &quot;*.eam.h0.*.nc&quot;)</span>
+<span id="L3006" class="src-line"><span class="src-ln">3006</span>      if not h0_files:</span>
+<span id="L3007" class="src-line"><span class="src-ln">3007</span>          issues.append(&quot;  FATAL: no *.eam.h0.*.nc files found&quot;)</span>
+<span id="L3008" class="src-line"><span class="src-ln">3008</span>          _report(&quot;Training readiness&quot;, issues)</span>
+<span id="L3009" class="src-line"><span class="src-ln">3009</span>          return issues, plots, fill_reports</span>
+<span id="L3010" class="src-line"><span class="src-ln">3010</span>  </span>
+<span id="L3011" class="src-line"><span class="src-ln">3011</span>      # -- Build expected variable list: ACE name -&gt; EAM name --</span>
+<span id="L3012" class="src-line"><span class="src-ln">3012</span>      expected_vars = {}</span>
+<span id="L3013" class="src-line"><span class="src-ln">3013</span>      for ace_name in ACE_IN_NAMES + ACE_OUT_NAMES:</span>
+<span id="L3014" class="src-line"><span class="src-ln">3014</span>          eam_name = ace_to_eam(ace_name)</span>
+<span id="L3015" class="src-line"><span class="src-ln">3015</span>          expected_vars[eam_name] = ace_name  # eam_name -&gt; ace_name</span>
+<span id="L3016" class="src-line"><span class="src-ln">3016</span>      # Remove duplicates (some vars appear in both IN and OUT)</span>
+<span id="L3017" class="src-line"><span class="src-ln">3017</span>      # Add radiation diagnostic fields not in ACE lists but needed for closure</span>
+<span id="L3018" class="src-line"><span class="src-ln">3018</span>      for extra in [&quot;FSNTOA&quot;, &quot;FLNT&quot;, &quot;FSNS&quot;, &quot;FLNS&quot;]:</span>
+<span id="L3019" class="src-line"><span class="src-ln">3019</span>          if extra not in expected_vars:</span>
+<span id="L3020" class="src-line"><span class="src-ln">3020</span>              expected_vars[extra] = extra</span>
+<span id="L3021" class="src-line"><span class="src-ln">3021</span>  </span>
+<span id="L3022" class="src-line"><span class="src-ln">3022</span>      # ---- CHECK 1: Variable presence ----</span>
+<span id="L3023" class="src-line"><span class="src-ln">3023</span>      print(&quot;\n  [1/7] Variable presence&quot;)</span>
+<span id="L3024" class="src-line"><span class="src-ln">3024</span>      ds_check = safe_open(h0_files[-1])</span>
+<span id="L3025" class="src-line"><span class="src-ln">3025</span>      n_present = 0</span>
+<span id="L3026" class="src-line"><span class="src-ln">3026</span>      missing_vars = []</span>
+<span id="L3027" class="src-line"><span class="src-ln">3027</span>      for eam_name in sorted(expected_vars.keys()):</span>
+<span id="L3028" class="src-line"><span class="src-ln">3028</span>          arr = get_var(ds_check, eam_name)</span>
+<span id="L3029" class="src-line"><span class="src-ln">3029</span>          if arr is None:</span>
+<span id="L3030" class="src-line"><span class="src-ln">3030</span>              missing_vars.append(eam_name)</span>
+<span id="L3031" class="src-line"><span class="src-ln">3031</span>          else:</span>
+<span id="L3032" class="src-line"><span class="src-ln">3032</span>              n_present += 1</span>
+<span id="L3033" class="src-line"><span class="src-ln">3033</span>      close_ds(ds_check)</span>
+<span id="L3034" class="src-line"><span class="src-ln">3034</span>      n_total_vars = len(expected_vars)</span>
+<span id="L3035" class="src-line"><span class="src-ln">3035</span>      if missing_vars:</span>
+<span id="L3036" class="src-line"><span class="src-ln">3036</span>          issues.append(f&quot;  Missing {len(missing_vars)}/{n_total_vars} variables: &quot;</span>
+<span id="L3037" class="src-line"><span class="src-ln">3037</span>                        f&quot;{&#x27;, &#x27;.join(missing_vars[:10])}&quot;</span>
+<span id="L3038" class="src-line"><span class="src-ln">3038</span>                        + (f&quot; ... (+{len(missing_vars)-10} more)&quot;</span>
+<span id="L3039" class="src-line"><span class="src-ln">3039</span>                           if len(missing_vars) &gt; 10 else &quot;&quot;))</span>
+<span id="L3040" class="src-line"><span class="src-ln">3040</span>      print(f&quot;    {n_present}/{n_total_vars} variables present&quot;</span>
+<span id="L3041" class="src-line"><span class="src-ln">3041</span>            + (f&quot;  ({len(missing_vars)} missing)&quot; if missing_vars else &quot;  OK&quot;))</span>
+<span id="L3042" class="src-line"><span class="src-ln">3042</span>  </span>
+<span id="L3043" class="src-line"><span class="src-ln">3043</span>      # ---- CHECK 2: Coordinate validation ----</span>
+<span id="L3044" class="src-line"><span class="src-ln">3044</span>      print(&quot;  [2/7] Coordinate validation&quot;)</span>
+<span id="L3045" class="src-line"><span class="src-ln">3045</span>      ds_grid = safe_open(h0_files[0])</span>
+<span id="L3046" class="src-line"><span class="src-ln">3046</span>      dims = get_dims(ds_grid)</span>
+<span id="L3047" class="src-line"><span class="src-ln">3047</span>      lon = get_var(ds_grid, &quot;lon&quot;)</span>
+<span id="L3048" class="src-line"><span class="src-ln">3048</span>      lat = get_var(ds_grid, &quot;lat&quot;)</span>
+<span id="L3049" class="src-line"><span class="src-ln">3049</span>      is_latlon = &quot;lon&quot; in dims and &quot;lat&quot; in dims</span>
+<span id="L3050" class="src-line"><span class="src-ln">3050</span>      if not is_latlon:</span>
+<span id="L3051" class="src-line"><span class="src-ln">3051</span>          issues.append(&quot;  Grid is not lat-lon (found dims: &quot;</span>
+<span id="L3052" class="src-line"><span class="src-ln">3052</span>                        f&quot;{list(dims.keys())}). Expected remapped output.&quot;)</span>
+<span id="L3053" class="src-line"><span class="src-ln">3053</span>          print(&quot;    WARNING: not a lat-lon grid — may be native spectral element&quot;)</span>
+<span id="L3054" class="src-line"><span class="src-ln">3054</span>      else:</span>
+<span id="L3055" class="src-line"><span class="src-ln">3055</span>          nlon = dims.get(&quot;lon&quot;, 0)</span>
+<span id="L3056" class="src-line"><span class="src-ln">3056</span>          nlat = dims.get(&quot;lat&quot;, 0)</span>
+<span id="L3057" class="src-line"><span class="src-ln">3057</span>          print(f&quot;    Grid: {nlon} x {nlat}&quot;)</span>
+<span id="L3058" class="src-line"><span class="src-ln">3058</span>          if nlon != 360:</span>
+<span id="L3059" class="src-line"><span class="src-ln">3059</span>              issues.append(f&quot;  lon dimension={nlon}, expected 360&quot;)</span>
+<span id="L3060" class="src-line"><span class="src-ln">3060</span>          if nlat != 180:</span>
+<span id="L3061" class="src-line"><span class="src-ln">3061</span>              issues.append(f&quot;  lat dimension={nlat}, expected 180&quot;)</span>
+<span id="L3062" class="src-line"><span class="src-ln">3062</span>          if lon is not None and lon.size &gt; 1:</span>
+<span id="L3063" class="src-line"><span class="src-ln">3063</span>              dlon = np.diff(lon)</span>
+<span id="L3064" class="src-line"><span class="src-ln">3064</span>              if not np.all(dlon &gt; 0):</span>
+<span id="L3065" class="src-line"><span class="src-ln">3065</span>                  issues.append(&quot;  lon not monotonically increasing&quot;)</span>
+<span id="L3066" class="src-line"><span class="src-ln">3066</span>              if np.abs(np.mean(dlon) - 1.0) &gt; 0.1:</span>
+<span id="L3067" class="src-line"><span class="src-ln">3067</span>                  issues.append(f&quot;  lon spacing={np.mean(dlon):.3f}, expected ~1.0 deg&quot;)</span>
+<span id="L3068" class="src-line"><span class="src-ln">3068</span>          if lat is not None and lat.size &gt; 1:</span>
+<span id="L3069" class="src-line"><span class="src-ln">3069</span>              dlat = np.diff(lat)</span>
+<span id="L3070" class="src-line"><span class="src-ln">3070</span>              if not (np.all(dlat &gt; 0) or np.all(dlat &lt; 0)):</span>
+<span id="L3071" class="src-line"><span class="src-ln">3071</span>                  issues.append(&quot;  lat not monotonic&quot;)</span>
+<span id="L3072" class="src-line"><span class="src-ln">3072</span>          if not issues:</span>
+<span id="L3073" class="src-line"><span class="src-ln">3073</span>              print(&quot;    Coordinates OK&quot;)</span>
+<span id="L3074" class="src-line"><span class="src-ln">3074</span>      close_ds(ds_grid)</span>
+<span id="L3075" class="src-line"><span class="src-ln">3075</span>  </span>
+<span id="L3076" class="src-line"><span class="src-ln">3076</span>      # ---- CHECK 3: Temporal completeness ----</span>
+<span id="L3077" class="src-line"><span class="src-ln">3077</span>      print(&quot;  [3/7] Temporal completeness&quot;)</span>
+<span id="L3078" class="src-line"><span class="src-ln">3078</span>      all_times = []</span>
+<span id="L3079" class="src-line"><span class="src-ln">3079</span>      for fpath in h0_files:</span>
+<span id="L3080" class="src-line"><span class="src-ln">3080</span>          ds = safe_open(fpath)</span>
+<span id="L3081" class="src-line"><span class="src-ln">3081</span>          t = get_var(ds, &quot;time&quot;)</span>
+<span id="L3082" class="src-line"><span class="src-ln">3082</span>          if t is None:</span>
+<span id="L3083" class="src-line"><span class="src-ln">3083</span>              t = get_var(ds, &quot;Time&quot;)</span>
+<span id="L3084" class="src-line"><span class="src-ln">3084</span>          if t is not None:</span>
+<span id="L3085" class="src-line"><span class="src-ln">3085</span>              all_times.extend(t.tolist())</span>
+<span id="L3086" class="src-line"><span class="src-ln">3086</span>          else:</span>
+<span id="L3087" class="src-line"><span class="src-ln">3087</span>              d = get_dims(ds)</span>
+<span id="L3088" class="src-line"><span class="src-ln">3088</span>              nt = d.get(&quot;time&quot;, d.get(&quot;Time&quot;, 0))</span>
+<span id="L3089" class="src-line"><span class="src-ln">3089</span>              all_times.extend(range(len(all_times), len(all_times) + nt))</span>
+<span id="L3090" class="src-line"><span class="src-ln">3090</span>          close_ds(ds)</span>
+<span id="L3091" class="src-line"><span class="src-ln">3091</span>      n_timesteps = len(all_times)</span>
+<span id="L3092" class="src-line"><span class="src-ln">3092</span>      if n_timesteps == 0:</span>
+<span id="L3093" class="src-line"><span class="src-ln">3093</span>          issues.append(&quot;  0 timesteps found&quot;)</span>
+<span id="L3094" class="src-line"><span class="src-ln">3094</span>      else:</span>
+<span id="L3095" class="src-line"><span class="src-ln">3095</span>          t_arr = np.array(all_times, dtype=float)</span>
+<span id="L3096" class="src-line"><span class="src-ln">3096</span>          if t_arr.size &gt; 1:</span>
+<span id="L3097" class="src-line"><span class="src-ln">3097</span>              dt = np.diff(t_arr)</span>
+<span id="L3098" class="src-line"><span class="src-ln">3098</span>              if not np.all(dt &gt; 0):</span>
+<span id="L3099" class="src-line"><span class="src-ln">3099</span>                  issues.append(&quot;  Time axis not monotonically increasing&quot;)</span>
+<span id="L3100" class="src-line"><span class="src-ln">3100</span>              if dt.size &gt; 1:</span>
+<span id="L3101" class="src-line"><span class="src-ln">3101</span>                  median_dt = np.median(dt)</span>
+<span id="L3102" class="src-line"><span class="src-ln">3102</span>                  if median_dt &gt; 0:</span>
+<span id="L3103" class="src-line"><span class="src-ln">3103</span>                      gaps = np.where(dt &gt; 2.5 * median_dt)[0]</span>
+<span id="L3104" class="src-line"><span class="src-ln">3104</span>                      if len(gaps) &gt; 0:</span>
+<span id="L3105" class="src-line"><span class="src-ln">3105</span>                          issues.append(f&quot;  {len(gaps)} time gap(s) detected&quot;)</span>
+<span id="L3106" class="src-line"><span class="src-ln">3106</span>      print(f&quot;    {n_timesteps} timesteps across {len(h0_files)} file(s)&quot;)</span>
+<span id="L3107" class="src-line"><span class="src-ln">3107</span>  </span>
+<span id="L3108" class="src-line"><span class="src-ln">3108</span>      # ---- CHECK 4: NaN/fill contamination (all timesteps) ----</span>
+<span id="L3109" class="src-line"><span class="src-ln">3109</span>      print(&quot;  [4/7] NaN/fill contamination (all timesteps)&quot;)</span>
+<span id="L3110" class="src-line"><span class="src-ln">3110</span>      nan_issues = 0</span>
+<span id="L3111" class="src-line"><span class="src-ln">3111</span>      # For EAM on a lat-lon grid, atmospheric fields should have no NaN</span>
+<span id="L3112" class="src-line"><span class="src-ln">3112</span>      # anywhere (atmosphere covers the whole globe, unlike ocean).</span>
+<span id="L3113" class="src-line"><span class="src-ln">3113</span>      for fpath in h0_files:</span>
+<span id="L3114" class="src-line"><span class="src-ln">3114</span>          ds = safe_open(fpath)</span>
+<span id="L3115" class="src-line"><span class="src-ln">3115</span>          d = get_dims(ds)</span>
+<span id="L3116" class="src-line"><span class="src-ln">3116</span>          nt = d.get(&quot;time&quot;, d.get(&quot;Time&quot;, 1))</span>
+<span id="L3117" class="src-line"><span class="src-ln">3117</span>          for eam_name in sorted(expected_vars.keys()):</span>
+<span id="L3118" class="src-line"><span class="src-ln">3118</span>              if eam_name in missing_vars:</span>
+<span id="L3119" class="src-line"><span class="src-ln">3119</span>                  continue</span>
+<span id="L3120" class="src-line"><span class="src-ln">3120</span>              arr = get_var(ds, eam_name)</span>
+<span id="L3121" class="src-line"><span class="src-ln">3121</span>              if arr is None:</span>
+<span id="L3122" class="src-line"><span class="src-ln">3122</span>                  continue</span>
+<span id="L3123" class="src-line"><span class="src-ln">3123</span>              # Check every timestep</span>
+<span id="L3124" class="src-line"><span class="src-ln">3124</span>              n_check = min(nt, arr.shape[0]) if arr.ndim &gt;= 3 else 1</span>
+<span id="L3125" class="src-line"><span class="src-ln">3125</span>              for ti in range(n_check):</span>
+<span id="L3126" class="src-line"><span class="src-ln">3126</span>                  if arr.ndim &gt;= 3:</span>
+<span id="L3127" class="src-line"><span class="src-ln">3127</span>                      slab = arr[ti]</span>
+<span id="L3128" class="src-line"><span class="src-ln">3128</span>                  elif arr.ndim == 2:</span>
+<span id="L3129" class="src-line"><span class="src-ln">3129</span>                      slab = arr</span>
+<span id="L3130" class="src-line"><span class="src-ln">3130</span>                  else:</span>
+<span id="L3131" class="src-line"><span class="src-ln">3131</span>                      continue</span>
+<span id="L3132" class="src-line"><span class="src-ln">3132</span>                  slab_f = slab.astype(float)</span>
+<span id="L3133" class="src-line"><span class="src-ln">3133</span>                  n_bad = int((~np.isfinite(slab_f) |</span>
+<span id="L3134" class="src-line"><span class="src-ln">3134</span>                               (np.abs(slab_f) &gt;= fill_thresh)).sum())</span>
+<span id="L3135" class="src-line"><span class="src-ln">3135</span>                  if n_bad &gt; 0:</span>
+<span id="L3136" class="src-line"><span class="src-ln">3136</span>                      nan_issues += 1</span>
+<span id="L3137" class="src-line"><span class="src-ln">3137</span>                      if nan_issues &lt;= 5:</span>
+<span id="L3138" class="src-line"><span class="src-ln">3138</span>                          issues.append(</span>
+<span id="L3139" class="src-line"><span class="src-ln">3139</span>                              f&quot;  NaN/fill: {eam_name} t={ti} &quot;</span>
+<span id="L3140" class="src-line"><span class="src-ln">3140</span>                              f&quot;in {os.path.basename(fpath)}: &quot;</span>
+<span id="L3141" class="src-line"><span class="src-ln">3141</span>                              f&quot;{n_bad} bad cells&quot;)</span>
+<span id="L3142" class="src-line"><span class="src-ln">3142</span>          close_ds(ds)</span>
+<span id="L3143" class="src-line"><span class="src-ln">3143</span>      if nan_issues &gt; 5:</span>
+<span id="L3144" class="src-line"><span class="src-ln">3144</span>          issues.append(f&quot;  ... and {nan_issues - 5} more NaN/fill issues&quot;)</span>
+<span id="L3145" class="src-line"><span class="src-ln">3145</span>      if nan_issues == 0:</span>
+<span id="L3146" class="src-line"><span class="src-ln">3146</span>          print(&quot;    No NaN/fill contamination  OK&quot;)</span>
+<span id="L3147" class="src-line"><span class="src-ln">3147</span>      else:</span>
+<span id="L3148" class="src-line"><span class="src-ln">3148</span>          print(f&quot;    {nan_issues} NaN/fill issue(s)&quot;)</span>
+<span id="L3149" class="src-line"><span class="src-ln">3149</span>  </span>
+<span id="L3150" class="src-line"><span class="src-ln">3150</span>      # ---- CHECK 5: Physical range bounds (all timesteps) ----</span>
+<span id="L3151" class="src-line"><span class="src-ln">3151</span>      print(&quot;  [5/7] Physical range bounds (all timesteps)&quot;)</span>
+<span id="L3152" class="src-line"><span class="src-ln">3152</span>      range_fails = 0</span>
+<span id="L3153" class="src-line"><span class="src-ln">3153</span>      for fpath in h0_files:</span>
+<span id="L3154" class="src-line"><span class="src-ln">3154</span>          ds = safe_open(fpath)</span>
+<span id="L3155" class="src-line"><span class="src-ln">3155</span>          for eam_name in sorted(expected_vars.keys()):</span>
+<span id="L3156" class="src-line"><span class="src-ln">3156</span>              if eam_name in missing_vars:</span>
+<span id="L3157" class="src-line"><span class="src-ln">3157</span>                  continue</span>
+<span id="L3158" class="src-line"><span class="src-ln">3158</span>              # Use base name for range lookup (T_3 -&gt; T)</span>
+<span id="L3159" class="src-line"><span class="src-ln">3159</span>              parts = eam_name.rsplit(&#x27;_&#x27;, 1)</span>
+<span id="L3160" class="src-line"><span class="src-ln">3160</span>              base = parts[0] if len(parts) == 2 and parts[1].isdigit() else eam_name</span>
+<span id="L3161" class="src-line"><span class="src-ln">3161</span>              vmin, vmax = RANGE_CHECKS.get(base, (None, None))</span>
+<span id="L3162" class="src-line"><span class="src-ln">3162</span>              if vmin is None and vmax is None:</span>
+<span id="L3163" class="src-line"><span class="src-ln">3163</span>                  continue</span>
+<span id="L3164" class="src-line"><span class="src-ln">3164</span>              arr = get_var(ds, eam_name)</span>
+<span id="L3165" class="src-line"><span class="src-ln">3165</span>              if arr is None:</span>
+<span id="L3166" class="src-line"><span class="src-ln">3166</span>                  continue</span>
+<span id="L3167" class="src-line"><span class="src-ln">3167</span>              v = valid_data(arr)</span>
+<span id="L3168" class="src-line"><span class="src-ln">3168</span>              if v is None or v.size == 0:</span>
+<span id="L3169" class="src-line"><span class="src-ln">3169</span>                  continue</span>
+<span id="L3170" class="src-line"><span class="src-ln">3170</span>              if vmin is not None and v.min() &lt; vmin:</span>
+<span id="L3171" class="src-line"><span class="src-ln">3171</span>                  range_fails += 1</span>
+<span id="L3172" class="src-line"><span class="src-ln">3172</span>                  if range_fails &lt;= 5:</span>
+<span id="L3173" class="src-line"><span class="src-ln">3173</span>                      issues.append(f&quot;  Range: {eam_name} min={v.min():.4g} &lt; {vmin} &quot;</span>
+<span id="L3174" class="src-line"><span class="src-ln">3174</span>                                    f&quot;in {os.path.basename(fpath)}&quot;)</span>
+<span id="L3175" class="src-line"><span class="src-ln">3175</span>              if vmax is not None and v.max() &gt; vmax:</span>
+<span id="L3176" class="src-line"><span class="src-ln">3176</span>                  range_fails += 1</span>
+<span id="L3177" class="src-line"><span class="src-ln">3177</span>                  if range_fails &lt;= 5:</span>
+<span id="L3178" class="src-line"><span class="src-ln">3178</span>                      issues.append(f&quot;  Range: {eam_name} max={v.max():.4g} &gt; {vmax} &quot;</span>
+<span id="L3179" class="src-line"><span class="src-ln">3179</span>                                    f&quot;in {os.path.basename(fpath)}&quot;)</span>
+<span id="L3180" class="src-line"><span class="src-ln">3180</span>          close_ds(ds)</span>
+<span id="L3181" class="src-line"><span class="src-ln">3181</span>      if range_fails &gt; 5:</span>
+<span id="L3182" class="src-line"><span class="src-ln">3182</span>          issues.append(f&quot;  ... and {range_fails - 5} more range violations&quot;)</span>
+<span id="L3183" class="src-line"><span class="src-ln">3183</span>      if range_fails == 0:</span>
+<span id="L3184" class="src-line"><span class="src-ln">3184</span>          print(&quot;    All variables within physical bounds  OK&quot;)</span>
+<span id="L3185" class="src-line"><span class="src-ln">3185</span>      else:</span>
+<span id="L3186" class="src-line"><span class="src-ln">3186</span>          print(f&quot;    {range_fails} range violation(s)&quot;)</span>
+<span id="L3187" class="src-line"><span class="src-ln">3187</span>  </span>
+<span id="L3188" class="src-line"><span class="src-ln">3188</span>      # ---- CHECK 6: Radiation budget closure ----</span>
+<span id="L3189" class="src-line"><span class="src-ln">3189</span>      print(&quot;  [6/7] Radiation budget closure&quot;)</span>
+<span id="L3190" class="src-line"><span class="src-ln">3190</span>      ds_rad = safe_open(h0_files[-1])</span>
+<span id="L3191" class="src-line"><span class="src-ln">3191</span>      rad_vars = {v: get_var(ds_rad, v) for v in</span>
+<span id="L3192" class="src-line"><span class="src-ln">3192</span>                  [&quot;SOLIN&quot;, &quot;FSUTOA&quot;, &quot;FLUT&quot;, &quot;FSDS&quot;, &quot;FSUS&quot;,</span>
+<span id="L3193" class="src-line"><span class="src-ln">3193</span>                   &quot;FLDS&quot;, &quot;FLUS&quot;, &quot;LHFLX&quot;, &quot;SHFLX&quot;]}</span>
+<span id="L3194" class="src-line"><span class="src-ln">3194</span>      close_ds(ds_rad)</span>
+<span id="L3195" class="src-line"><span class="src-ln">3195</span>      if all(v is not None for v in rad_vars.values()):</span>
+<span id="L3196" class="src-line"><span class="src-ln">3196</span>          # Extract last timestep global means</span>
+<span id="L3197" class="src-line"><span class="src-ln">3197</span>          gmeans = {}</span>
+<span id="L3198" class="src-line"><span class="src-ln">3198</span>          for vn, arr in rad_vars.items():</span>
+<span id="L3199" class="src-line"><span class="src-ln">3199</span>              data = arr[-1] if arr.ndim &gt;= 2 and arr.shape[0] &gt; 0 else arr</span>
+<span id="L3200" class="src-line"><span class="src-ln">3200</span>              v = valid_data(data)</span>
+<span id="L3201" class="src-line"><span class="src-ln">3201</span>              if v is not None and v.size &gt; 0:</span>
+<span id="L3202" class="src-line"><span class="src-ln">3202</span>                  gmeans[vn] = float(v.mean())</span>
+<span id="L3203" class="src-line"><span class="src-ln">3203</span>          if len(gmeans) == len(rad_vars):</span>
+<span id="L3204" class="src-line"><span class="src-ln">3204</span>              toa_net = gmeans[&quot;SOLIN&quot;] - gmeans[&quot;FSUTOA&quot;] - gmeans[&quot;FLUT&quot;]</span>
+<span id="L3205" class="src-line"><span class="src-ln">3205</span>              sfc_net = (gmeans[&quot;FSDS&quot;] - gmeans[&quot;FSUS&quot;] +</span>
+<span id="L3206" class="src-line"><span class="src-ln">3206</span>                         gmeans[&quot;FLDS&quot;] - gmeans[&quot;FLUS&quot;] -</span>
+<span id="L3207" class="src-line"><span class="src-ln">3207</span>                         gmeans[&quot;LHFLX&quot;] - gmeans[&quot;SHFLX&quot;])</span>
+<span id="L3208" class="src-line"><span class="src-ln">3208</span>              # TOA imbalance should be small (&lt; ~10 W/m2 in equilibrium,</span>
+<span id="L3209" class="src-line"><span class="src-ln">3209</span>              # larger during spinup). Flag extreme values only.</span>
+<span id="L3210" class="src-line"><span class="src-ln">3210</span>              if abs(toa_net) &gt; 50:</span>
+<span id="L3211" class="src-line"><span class="src-ln">3211</span>                  issues.append(f&quot;  TOA imbalance: {toa_net:.1f} W/m2 (&gt;50 W/m2)&quot;)</span>
+<span id="L3212" class="src-line"><span class="src-ln">3212</span>              if abs(sfc_net) &gt; 50:</span>
+<span id="L3213" class="src-line"><span class="src-ln">3213</span>                  issues.append(f&quot;  SFC imbalance: {sfc_net:.1f} W/m2 (&gt;50 W/m2)&quot;)</span>
+<span id="L3214" class="src-line"><span class="src-ln">3214</span>              print(f&quot;    TOA net: {toa_net:.1f} W/m2, SFC net: {sfc_net:.1f} W/m2&quot;</span>
+<span id="L3215" class="src-line"><span class="src-ln">3215</span>                    + (&quot;  OK&quot; if abs(toa_net) &lt;= 50 and abs(sfc_net) &lt;= 50 else &quot;&quot;))</span>
+<span id="L3216" class="src-line"><span class="src-ln">3216</span>          else:</span>
+<span id="L3217" class="src-line"><span class="src-ln">3217</span>              print(&quot;    SKIP: could not compute global means&quot;)</span>
+<span id="L3218" class="src-line"><span class="src-ln">3218</span>      else:</span>
+<span id="L3219" class="src-line"><span class="src-ln">3219</span>          missing_rad = [v for v, a in rad_vars.items() if a is None]</span>
+<span id="L3220" class="src-line"><span class="src-ln">3220</span>          print(f&quot;    SKIP: missing {missing_rad}&quot;)</span>
+<span id="L3221" class="src-line"><span class="src-ln">3221</span>  </span>
+<span id="L3222" class="src-line"><span class="src-ln">3222</span>      # ---- CHECK 7: Vcoarsen layer completeness ----</span>
+<span id="L3223" class="src-line"><span class="src-ln">3223</span>      print(&quot;  [7/7] Vcoarsen layer completeness&quot;)</span>
+<span id="L3224" class="src-line"><span class="src-ln">3224</span>      ds_vc = safe_open(h0_files[-1])</span>
+<span id="L3225" class="src-line"><span class="src-ln">3225</span>      vc_ok = True</span>
+<span id="L3226" class="src-line"><span class="src-ln">3226</span>      for base in ACE_ATM_3D_COARSENED:</span>
+<span id="L3227" class="src-line"><span class="src-ln">3227</span>          found = 0</span>
+<span id="L3228" class="src-line"><span class="src-ln">3228</span>          for k in range(N_ATM_LAYERS):</span>
+<span id="L3229" class="src-line"><span class="src-ln">3229</span>              if get_var(ds_vc, f&quot;{base}_{k}&quot;) is not None:</span>
+<span id="L3230" class="src-line"><span class="src-ln">3230</span>                  found += 1</span>
+<span id="L3231" class="src-line"><span class="src-ln">3231</span>          if found != N_ATM_LAYERS:</span>
+<span id="L3232" class="src-line"><span class="src-ln">3232</span>              vc_ok = False</span>
+<span id="L3233" class="src-line"><span class="src-ln">3233</span>              issues.append(f&quot;  Vcoarsen: {base} has {found}/{N_ATM_LAYERS} layers&quot;)</span>
+<span id="L3234" class="src-line"><span class="src-ln">3234</span>      close_ds(ds_vc)</span>
+<span id="L3235" class="src-line"><span class="src-ln">3235</span>      if vc_ok:</span>
+<span id="L3236" class="src-line"><span class="src-ln">3236</span>          print(f&quot;    All {len(ACE_ATM_3D_COARSENED)} base fields x &quot;</span>
+<span id="L3237" class="src-line"><span class="src-ln">3237</span>                f&quot;{N_ATM_LAYERS} layers present  OK&quot;)</span>
+<span id="L3238" class="src-line"><span class="src-ln">3238</span>      else:</span>
+<span id="L3239" class="src-line"><span class="src-ln">3239</span>          print(&quot;    Incomplete vcoarsen layers&quot;)</span>
+<span id="L3240" class="src-line"><span class="src-ln">3240</span>  </span>
+<span id="L3241" class="src-line"><span class="src-ln">3241</span>      # ---- VERDICT ----</span>
+<span id="L3242" class="src-line"><span class="src-ln">3242</span>      n_issues = len(issues)</span>
+<span id="L3243" class="src-line"><span class="src-ln">3243</span>      if n_issues == 0:</span>
+<span id="L3244" class="src-line"><span class="src-ln">3244</span>          verdict = &quot;PASS&quot;</span>
+<span id="L3245" class="src-line"><span class="src-ln">3245</span>          print(f&quot;\n  *** TRAINING READINESS: {verdict} ***&quot;)</span>
+<span id="L3246" class="src-line"><span class="src-ln">3246</span>          print(f&quot;  {n_present} variables, {n_timesteps} timesteps, &quot;</span>
+<span id="L3247" class="src-line"><span class="src-ln">3247</span>                f&quot;all checks passed.&quot;)</span>
+<span id="L3248" class="src-line"><span class="src-ln">3248</span>      else:</span>
+<span id="L3249" class="src-line"><span class="src-ln">3249</span>          verdict = &quot;FAIL&quot;</span>
+<span id="L3250" class="src-line"><span class="src-ln">3250</span>          print(f&quot;\n  *** TRAINING READINESS: {verdict} ({n_issues} issue(s)) ***&quot;)</span>
+<span id="L3251" class="src-line"><span class="src-ln">3251</span>          for iss in issues[:10]:</span>
+<span id="L3252" class="src-line"><span class="src-ln">3252</span>              print(f&quot;  {iss.strip()}&quot;)</span>
+<span id="L3253" class="src-line"><span class="src-ln">3253</span>          if n_issues &gt; 10:</span>
+<span id="L3254" class="src-line"><span class="src-ln">3254</span>              print(f&quot;  ... and {n_issues - 10} more&quot;)</span>
+<span id="L3255" class="src-line"><span class="src-ln">3255</span>  </span>
+<span id="L3256" class="src-line"><span class="src-ln">3256</span>      _report(&quot;Training readiness&quot;, issues)</span>
+<span id="L3257" class="src-line"><span class="src-ln">3257</span>      return issues, plots, fill_reports</span>
+<span id="L3258" class="src-line"><span class="src-ln">3258</span>  </span>
+<span id="L3259" class="src-line"><span class="src-ln">3259</span>  </span>
+<span id="L3260" class="src-line"><span class="src-ln">3260</span>  # -----------------------------------------------------------------------------</span>
+<span id="L3261" class="src-line"><span class="src-ln">3261</span>  # Main</span>
+<span id="L3262" class="src-line"><span class="src-ln">3262</span>  # -----------------------------------------------------------------------------</span>
+<span id="L3263" class="src-line"><span class="src-ln">3263</span>  </span>
+<span id="L3264" class="src-line"><span class="src-ln">3264</span>  def main():</span>
+<span id="L3265" class="src-line"><span class="src-ln">3265</span>      parser = argparse.ArgumentParser(</span>
+<span id="L3266" class="src-line"><span class="src-ln">3266</span>          description=&quot;Verify EAM FME output (vcoarsen, derived fields) and &quot;</span>
+<span id="L3267" class="src-line"><span class="src-ln">3267</span>                      &quot;produce diagnostic figures with optional cross-verification.&quot;)</span>
+<span id="L3268" class="src-line"><span class="src-ln">3268</span>      parser.add_argument(&quot;--rundir&quot;, required=True,</span>
+<span id="L3269" class="src-line"><span class="src-ln">3269</span>                          help=&quot;CIME RUNDIR for the FME case (fme_output testmod)&quot;)</span>
+<span id="L3270" class="src-line"><span class="src-ln">3270</span>      parser.add_argument(&quot;--outdir&quot;, required=True,</span>
+<span id="L3271" class="src-line"><span class="src-ln">3271</span>                          help=&quot;Output directory for figures and HTML index&quot;)</span>
+<span id="L3272" class="src-line"><span class="src-ln">3272</span>      parser.add_argument(&quot;--verbose&quot;, &quot;-v&quot;, action=&quot;store_true&quot;)</span>
+<span id="L3273" class="src-line"><span class="src-ln">3273</span>      parser.add_argument(&quot;--legacy-rundir&quot;,</span>
+<span id="L3274" class="src-line"><span class="src-ln">3274</span>                          help=&quot;CIME RUNDIR for the legacy case (fme_legacy_output testmod) &quot;</span>
+<span id="L3275" class="src-line"><span class="src-ln">3275</span>                               &quot;for cross-verification&quot;)</span>
+<span id="L3276" class="src-line"><span class="src-ln">3276</span>      args = parser.parse_args()</span>
+<span id="L3277" class="src-line"><span class="src-ln">3277</span>  </span>
+<span id="L3278" class="src-line"><span class="src-ln">3278</span>      if not os.path.isdir(args.rundir):</span>
+<span id="L3279" class="src-line"><span class="src-ln">3279</span>          sys.exit(f&quot;ERROR: rundir not found: {args.rundir}&quot;)</span>
+<span id="L3280" class="src-line"><span class="src-ln">3280</span>  </span>
+<span id="L3281" class="src-line"><span class="src-ln">3281</span>      os.makedirs(args.outdir, exist_ok=True)</span>
+<span id="L3282" class="src-line"><span class="src-ln">3282</span>      print(f&quot;EAM FME Verification  |  rundir: {args.rundir}&quot;)</span>
+<span id="L3283" class="src-line"><span class="src-ln">3283</span>      if args.legacy_rundir:</span>
+<span id="L3284" class="src-line"><span class="src-ln">3284</span>          print(f&quot;Legacy RUNDIR         :  {args.legacy_rundir}&quot;)</span>
+<span id="L3285" class="src-line"><span class="src-ln">3285</span>      print(f&quot;Output directory      :  {args.outdir}&quot;)</span>
+<span id="L3286" class="src-line"><span class="src-ln">3286</span>      print(&quot;=&quot; * 70)</span>
+<span id="L3287" class="src-line"><span class="src-ln">3287</span>  </span>
+<span id="L3288" class="src-line"><span class="src-ln">3288</span>      if not HAS_MPL:</span>
+<span id="L3289" class="src-line"><span class="src-ln">3289</span>          print(&quot;WARNING: matplotlib not available -- no figures will be produced&quot;)</span>
+<span id="L3290" class="src-line"><span class="src-ln">3290</span>      if not HAS_CARTOPY:</span>
+<span id="L3291" class="src-line"><span class="src-ln">3291</span>          print(&quot;WARNING: cartopy not available -- falling back to scatter maps&quot;)</span>
+<span id="L3292" class="src-line"><span class="src-ln">3292</span>      if not (HAS_XR or HAS_NC4):</span>
+<span id="L3293" class="src-line"><span class="src-ln">3293</span>          sys.exit(&quot;ERROR: need xarray or netCDF4&quot;)</span>
+<span id="L3294" class="src-line"><span class="src-ln">3294</span>  </span>
+<span id="L3295" class="src-line"><span class="src-ln">3295</span>      # File inventory</span>
+<span id="L3296" class="src-line"><span class="src-ln">3296</span>      file_inventory_data = collect_file_inventory(args.rundir)</span>
+<span id="L3297" class="src-line"><span class="src-ln">3297</span>  </span>
+<span id="L3298" class="src-line"><span class="src-ln">3298</span>      all_issues = {}</span>
+<span id="L3299" class="src-line"><span class="src-ln">3299</span>      all_plots_by_comp = {}</span>
+<span id="L3300" class="src-line"><span class="src-ln">3300</span>      all_fill_reports = {}</span>
+<span id="L3301" class="src-line"><span class="src-ln">3301</span>  </span>
+<span id="L3302" class="src-line"><span class="src-ln">3302</span>      # All figures go under fme_output/ subdir so fme_output.html can reference them</span>
+<span id="L3303" class="src-line"><span class="src-ln">3303</span>      fig_root = os.path.join(args.outdir, &quot;fme_output&quot;)</span>
+<span id="L3304" class="src-line"><span class="src-ln">3304</span>      os.makedirs(fig_root, exist_ok=True)</span>
+<span id="L3305" class="src-line"><span class="src-ln">3305</span>  </span>
+<span id="L3306" class="src-line"><span class="src-ln">3306</span>      def run_check(name, func, subdir, *a):</span>
+<span id="L3307" class="src-line"><span class="src-ln">3307</span>          comp_outdir = os.path.join(fig_root, subdir)</span>
+<span id="L3308" class="src-line"><span class="src-ln">3308</span>          os.makedirs(comp_outdir, exist_ok=True)</span>
+<span id="L3309" class="src-line"><span class="src-ln">3309</span>          result = func(*a[:1], comp_outdir, *a[1:])</span>
+<span id="L3310" class="src-line"><span class="src-ln">3310</span>          comp_issues, plots, fill_reports = result</span>
+<span id="L3311" class="src-line"><span class="src-ln">3311</span>          all_issues[name] = comp_issues</span>
+<span id="L3312" class="src-line"><span class="src-ln">3312</span>          all_plots_by_comp[name] = plots</span>
+<span id="L3313" class="src-line"><span class="src-ln">3313</span>          all_fill_reports[name] = fill_reports</span>
+<span id="L3314" class="src-line"><span class="src-ln">3314</span>  </span>
+<span id="L3315" class="src-line"><span class="src-ln">3315</span>      run_check(&quot;EAM&quot;, check_eam, &quot;eam&quot;,</span>
+<span id="L3316" class="src-line"><span class="src-ln">3316</span>                args.rundir, args.verbose)</span>
+<span id="L3317" class="src-line"><span class="src-ln">3317</span>  </span>
+<span id="L3318" class="src-line"><span class="src-ln">3318</span>      # ACE training readiness certification</span>
+<span id="L3319" class="src-line"><span class="src-ln">3319</span>      run_check(&quot;Training Readiness&quot;, check_training_readiness, &quot;eam&quot;,</span>
+<span id="L3320" class="src-line"><span class="src-ln">3320</span>                args.rundir, args.verbose)</span>
+<span id="L3321" class="src-line"><span class="src-ln">3321</span>  </span>
+<span id="L3322" class="src-line"><span class="src-ln">3322</span>      # EAM comparison figures (multi-panel layer views, zonal means)</span>
+<span id="L3323" class="src-line"><span class="src-ln">3323</span>      generate_comparison_figures(args.rundir, fig_root, all_plots_by_comp)</span>
+<span id="L3324" class="src-line"><span class="src-ln">3324</span>  </span>
+<span id="L3325" class="src-line"><span class="src-ln">3325</span>      # Timing summary</span>
+<span id="L3326" class="src-line"><span class="src-ln">3326</span>      timing_summary = read_timing_summary(args.rundir)</span>
+<span id="L3327" class="src-line"><span class="src-ln">3327</span>      if timing_summary:</span>
+<span id="L3328" class="src-line"><span class="src-ln">3328</span>          print(&quot;\n=== Performance Timing ===&quot;)</span>
+<span id="L3329" class="src-line"><span class="src-ln">3329</span>          for line in timing_summary[:10]:</span>
+<span id="L3330" class="src-line"><span class="src-ln">3330</span>              print(f&quot;  {line}&quot;)</span>
+<span id="L3331" class="src-line"><span class="src-ln">3331</span>          if len(timing_summary) &gt; 10:</span>
+<span id="L3332" class="src-line"><span class="src-ln">3332</span>              print(f&quot;  ... ({len(timing_summary) - 10} more lines in HTML report)&quot;)</span>
+<span id="L3333" class="src-line"><span class="src-ln">3333</span>  </span>
+<span id="L3334" class="src-line"><span class="src-ln">3334</span>      # ACE variable coverage</span>
+<span id="L3335" class="src-line"><span class="src-ln">3335</span>      print(&quot;\n=== ACE Variable Coverage ===&quot;)</span>
+<span id="L3336" class="src-line"><span class="src-ln">3336</span>      coverage = check_variable_coverage(args.rundir)</span>
+<span id="L3337" class="src-line"><span class="src-ln">3337</span>      if coverage:</span>
+<span id="L3338" class="src-line"><span class="src-ln">3338</span>          n_found = sum(1 for _, _, _, f in coverage if f)</span>
+<span id="L3339" class="src-line"><span class="src-ln">3339</span>          n_missing = len(coverage) - n_found</span>
+<span id="L3340" class="src-line"><span class="src-ln">3340</span>          print(f&quot;  {n_found}/{len(coverage)} ACE variables found in output&quot;)</span>
+<span id="L3341" class="src-line"><span class="src-ln">3341</span>          if n_missing:</span>
+<span id="L3342" class="src-line"><span class="src-ln">3342</span>              for ace_name, eam_name, _, found in coverage:</span>
+<span id="L3343" class="src-line"><span class="src-ln">3343</span>                  if not found:</span>
+<span id="L3344" class="src-line"><span class="src-ln">3344</span>                      print(f&quot;  MISSING: {ace_name} (EAM: {eam_name})&quot;)</span>
+<span id="L3345" class="src-line"><span class="src-ln">3345</span>  </span>
+<span id="L3346" class="src-line"><span class="src-ln">3346</span>      # Reproducibility info</span>
+<span id="L3347" class="src-line"><span class="src-ln">3347</span>      repro_info = collect_repro_info(args)</span>
+<span id="L3348" class="src-line"><span class="src-ln">3348</span>  </span>
+<span id="L3349" class="src-line"><span class="src-ln">3349</span>      # Cross-verification against legacy testmod output</span>
+<span id="L3350" class="src-line"><span class="src-ln">3350</span>      xv_html = &quot;&quot;</span>
+<span id="L3351" class="src-line"><span class="src-ln">3351</span>      xv_results = None</span>
+<span id="L3352" class="src-line"><span class="src-ln">3352</span>      if args.legacy_rundir:</span>
+<span id="L3353" class="src-line"><span class="src-ln">3353</span>          if not os.path.isdir(args.legacy_rundir):</span>
+<span id="L3354" class="src-line"><span class="src-ln">3354</span>              print(f&quot;WARNING: legacy-rundir not found: {args.legacy_rundir}&quot;)</span>
+<span id="L3355" class="src-line"><span class="src-ln">3355</span>          else:</span>
+<span id="L3356" class="src-line"><span class="src-ln">3356</span>              xv_issues, xv_results, xv_plots = cross_verify(</span>
+<span id="L3357" class="src-line"><span class="src-ln">3357</span>                  args.rundir, args.legacy_rundir, args.outdir, args.verbose)</span>
+<span id="L3358" class="src-line"><span class="src-ln">3358</span>              all_issues[&quot;Cross-Verify&quot;] = xv_issues</span>
+<span id="L3359" class="src-line"><span class="src-ln">3359</span>              if xv_plots:</span>
+<span id="L3360" class="src-line"><span class="src-ln">3360</span>                  all_plots_by_comp[&quot;Cross-Verify&quot;] = xv_plots</span>
+<span id="L3361" class="src-line"><span class="src-ln">3361</span>              xv_html = write_cross_verify_html(args.outdir, xv_results, xv_plots)</span>
+<span id="L3362" class="src-line"><span class="src-ln">3362</span>  </span>
+<span id="L3363" class="src-line"><span class="src-ln">3363</span>      # Build executive summary</span>
+<span id="L3364" class="src-line"><span class="src-ln">3364</span>      exec_summary = build_executive_summary(all_issues, coverage,</span>
+<span id="L3365" class="src-line"><span class="src-ln">3365</span>                                             xv_results=xv_results)</span>
+<span id="L3366" class="src-line"><span class="src-ln">3366</span>  </span>
+<span id="L3367" class="src-line"><span class="src-ln">3367</span>      write_html_index(args.outdir, all_plots_by_comp, all_issues,</span>
+<span id="L3368" class="src-line"><span class="src-ln">3368</span>                       file_inventory_data, all_fill_reports,</span>
+<span id="L3369" class="src-line"><span class="src-ln">3369</span>                       timing_summary=timing_summary,</span>
+<span id="L3370" class="src-line"><span class="src-ln">3370</span>                       extra_html=xv_html,</span>
+<span id="L3371" class="src-line"><span class="src-ln">3371</span>                       coverage=coverage,</span>
+<span id="L3372" class="src-line"><span class="src-ln">3372</span>                       repro_info=repro_info,</span>
+<span id="L3373" class="src-line"><span class="src-ln">3373</span>                       exec_summary=exec_summary)</span>
+<span id="L3374" class="src-line"><span class="src-ln">3374</span>  </span>
+<span id="L3375" class="src-line"><span class="src-ln">3375</span>      n_total = sum(len(v) for v in all_issues.values())</span>
+<span id="L3376" class="src-line"><span class="src-ln">3376</span>      print(&quot;\n&quot; + &quot;=&quot; * 70)</span>
+<span id="L3377" class="src-line"><span class="src-ln">3377</span>      print(f&quot;RESULT: {&#x27;ALL CHECKS PASSED&#x27; if n_total == 0 else f&#x27;{n_total} ISSUES FOUND&#x27;}&quot;)</span>
+<span id="L3378" class="src-line"><span class="src-ln">3378</span>      sys.exit(0 if n_total == 0 else 1)</span>
+<span id="L3379" class="src-line"><span class="src-ln">3379</span>  </span>
+<span id="L3380" class="src-line"><span class="src-ln">3380</span>  </span>
+<span id="L3381" class="src-line"><span class="src-ln">3381</span>  if __name__ == &quot;__main__&quot;:</span>
+<span id="L3382" class="src-line"><span class="src-ln">3382</span>      main()</span>
+<span id="L3383" class="src-line"><span class="src-ln">3383</span>  </span></pre>
 </details>
 </div>
 
     </div>
     <footer>
       <strong>verify_eam.py</strong> &mdash; EAM FME Online Output Verification for E3SM
-      &mdash; Generated 2026-04-15 19:56:54
+      &mdash; Generated 2026-04-15 20:25:55
     </footer>
     </body></html>
